@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Root>
+    <Config>
+        <Server>new-server.com</Server>
+        <Port>8080</Port>
+        <Database type="mysql">
+            <Name>mydb</Name>
+            <User>admin</User>
+            <Password>secret</Password>
+        </Database>
+    </Config>
+</Root>

@@ -1,0 +1,209 @@
+LRESULT Ctest2016Dlg::OnLoggerConfig(WPARAM wParam, LPARAM lParam)
+{
+	int mode = (int)wParam;
+	CommonTools::Logger::Config* config = (CommonTools::Logger::Config*)lParam;
+
+	auto cleanup_dirs = CFG["log.json"]["log"]["cleanup_dirs"].GetString(R"(d:/log)");
+	CFG["log.json"]["log"]["cleanup_dirs"].GetDescription(R"(设置定期清理目录列表(使用英文逗号';'分隔)，如：d:/log;d:/temp;d:/test)");
+
+	auto cleanup_days = CFG["log.json"]["log"]["cleanup_days"].GetString(R"(3)");
+	CFG["log.json"]["log"]["cleanup_days"].GetDescription(R"(设置定期清理目录天数(使用英文逗号';'分隔)，如：3;7;0)"); // 保持与dirs数量一致
+
+	auto file_size = CFG["log.json"]["log"]["file_size"].GetInt(10); // 10MB文件
+	CFG["log.json"]["log"]["file_size"].GetDescription(R"(设置日志文件最大容量(MB))");
+
+	auto file_count = CFG["log.json"]["log"]["file_count"].GetInt(100); // 100个文件
+	CFG["log.json"]["log"]["file_count"].GetDescription(R"(设置日志文件最大数量(个))");
+
+	auto outputs = CFG["log.json"]["log"]["outputs"].GetString("File;Gui;Tracer");
+	CFG["log.json"]["log"]["outputs"].GetDescription(R"(设置日志输出目标(使用英文逗号';'分隔)，如：File;Gui;Tracer)");
+
+	auto level_file = CFG["log.json"]["log"]["level_file"].GetInt(0);
+	CFG["log.json"]["log"]["level_file"].GetDescription(R"(设置文件日志写入级别(0~6))");
+
+	auto enable_database = CFG["log.json"]["log"]["enable_database"].GetInt(1); // 默认启用
+	CFG["log.json"]["log"]["enable_database"].GetDescription(R"(设置启用日志写入数据库)");
+
+	//LOG.AddCleanupDirectory(cleanup_dirs, atoi(cleanup_days.c_str()));
+	std::vector<std::string> dirs = StringUtils::Split(cleanup_dirs, ';');
+	std::vector<std::string> days = StringUtils::Split(cleanup_days, ';', dirs.size()); // 保持与dirs数量一致
+	for (size_t i = 0; i < dirs.size(); ++i)
+	{
+		LOG.AddCleanupDirectory(dirs[i], atoi(days[i].c_str()));
+	}
+
+	if (file_size < 1)
+		file_size = 1;
+	file_size = file_size * 1024 * 1024;
+
+	if (file_count < 0)
+		file_count = 0;
+
+	CommonTools::LoggerOutput targers = CommonTools::LoggerOutput::None;
+	std::vector<std::string> outs = StringUtils::Split(outputs, ';');
+	for (size_t i = 0; i < outs.size(); ++i)
+	{
+		// 不区分大小写
+		if (_stricmp(outs[i].c_str(), "Console") == 0)
+			targers |= CommonTools::LoggerOutput::Console;
+		else if (_stricmp(outs[i].c_str(), "File") == 0)
+			targers |= CommonTools::LoggerOutput::File;
+		else if (_stricmp(outs[i].c_str(), "Gui") == 0)
+			targers |= CommonTools::LoggerOutput::Gui;
+		else if (_stricmp(outs[i].c_str(), "VsTrace") == 0)
+			targers |= CommonTools::LoggerOutput::VsTrace;
+		else if (_stricmp(outs[i].c_str(), "Tracer") == 0)
+			targers |= CommonTools::LoggerOutput::Tracer;
+	}
+
+	std::vector<LogName> names = LOG.LoggerNames();
+	for (const auto& name : names)
+	{
+		LOG.GetLogger(name)->GetConfig().maxFileSize = file_size;
+		LOG.GetLogger(name)->GetConfig().maxFileCount = file_count;
+		LOG.GetLogger(name)->GetConfig().outputs = targers;
+		LOG.GetLogger(name)->GetConfig().enableDatabase = enable_database == 1 ? true : false;
+		LOG.GetLogger(name)->GetConfig().level = static_cast<LogLevel>(level_file);
+	}
+
+	static std::once_flag flag;
+	std::call_once(flag, [this]() {
+		std::vector<LogName> names = LOG.LoggerNames();
+		for (const auto& name : names)
+		{
+			LOG.GetLogger(name)->SetOutputCallback(CommonTools::LoggerOutput::Console, [](const CommonTools::Logger::MetaMsg& meta) {
+				std::stringstream ss;
+				ss << "Level: " << static_cast<int>(meta.level) << meta.message << std::endl;
+
+				auto console_level = CFG["log.json"]["log"]["console_level"].GetInt(2);
+				CFG["log.json"]["log"]["console_level"].GetDescription(R"(设置Console日志显示级别(0~6))");
+
+				if (static_cast<int> (meta.level) >= console_level)
+				{
+					std::cout << ss.str() << std::endl;//暂不支持颜色输入
+				}
+				});
+
+			LOG.GetLogger(name)->SetOutputCallback(CommonTools::LoggerOutput::Gui, [this](const CommonTools::Logger::MetaMsg& meta) {
+				std::stringstream ss;
+				ss << "[Gui]" << "Level: " << static_cast<int>(meta.level) << ", Message: " << meta.message << std::endl;
+
+				HWND hwnd = this->GetSafeHwnd(); // 主窗口句柄
+				if (hwnd)
+				{
+					std::string msg = CommonTools::TimePoint(meta.time).ToString("%H:%M:%S.%F") + " " + meta.message.c_str();
+
+					COLORREF color = RGB(0, 0, 0);
+					switch (meta.level)
+					{
+					case LogLevel::Trace://浅灰色
+						color = RGB(160, 160, 160);
+						break;
+					case LogLevel::Debug://中蓝色
+						color = RGB(51, 153, 255);
+						break;
+					case LogLevel::Info://标准绿色
+						color = RGB(0, 176, 80);
+						break;
+					case LogLevel::Warn://深黄色
+						color = RGB(255, 192, 0);
+						break;
+					case LogLevel::Error://标准红色
+						color = RGB(237, 28, 36);
+						break;
+					case LogLevel::Critical://深红色
+						color = RGB(192, 0, 0);
+						break;
+					case LogLevel::InfoRed://红色
+						color = RGB(255, 48, 48);
+						break;
+					case LogLevel::InfoGreen://绿色
+						color = RGB(0, 139, 69);
+						break;
+					case LogLevel::InfoBlack://黑色
+						color = RGB(0, 0, 0);
+						break;
+					default:
+						color = RGB(128, 128, 128);
+					}
+
+					auto level_gui = CFG["log.json"]["log"]["level_gui"].GetInt(2);
+					CFG["log.json"]["log"]["level_gui"].GetDescription(R"(设置Gui日志显示级别(0~6))");
+
+					if (static_cast<int> (meta.level) >= level_gui)
+					{
+						//::SendMessage(hwnd, WM_UPDATEDATA_SPDLOG, (WPARAM)msg.c_str(), (LPARAM)(color));
+						
+						// by lbq 20260119 解决使用线程池，退软件时UI资源释放后崩溃问题
+						//DebugTimer(__FUNCTION__);
+						UiAsyncLogger::LogMsg log_msg;
+						log_msg.msg_hwnd = hwnd;
+						log_msg.machine_id = machine_para->design_control.machine_id;
+						log_msg.content = msg;
+						log_msg.color = color;
+						log_msg.save_file = 1;
+						g_async_logger.add_log(log_msg);
+					}
+				}
+				});
+
+			LOG.GetLogger(name)->SetOutputCallback(CommonTools::LoggerOutput::VsTrace, [](const CommonTools::Logger::MetaMsg& meta) {
+				std::stringstream ss;
+				ss << "Level: " << static_cast<int>(meta.level) << meta.message << std::endl;
+
+				auto level_vs_trace = CFG["log.json"]["log"]["level_vs_trace"].GetInt(1);
+				CFG["log.json"]["log"]["level_vs_trace"].GetDescription(R"(设置VsTrace日志显示级别(0~6))");
+
+				if (static_cast<int> (meta.level) >= level_vs_trace)
+					TRACE(ss.str().c_str());//暂不支持颜色输入
+				});
+
+			LOG.GetLogger(name)->SetOutputCallback(CommonTools::LoggerOutput::Tracer, [](const CommonTools::Logger::MetaMsg& meta) {
+				COLORREF color = RGB(0, 0, 0);
+				switch (meta.level)
+				{
+				case LogLevel::Trace://浅灰色
+					color = RGB(160, 160, 160);
+					break;
+				case LogLevel::Debug://中蓝色
+					color = RGB(51, 153, 255);
+					break;
+				case LogLevel::Info://标准绿色
+					color = RGB(0, 176, 80);
+					break;
+				case LogLevel::Warn://深黄色
+					color = RGB(255, 192, 0);
+					break;
+				case LogLevel::Error://标准红色
+					color = RGB(237, 28, 36);
+					break;
+				case LogLevel::Critical://深红色
+					color = RGB(192, 0, 0);
+					break;
+				case LogLevel::InfoGreen://绿色
+					color = RGB(0, 139, 69);
+					break;
+				case LogLevel::InfoRed://红色
+					color = RGB(255, 48, 48);
+					break;
+				case LogLevel::InfoBlack://黑色
+					color = RGB(0, 0, 0);
+					break;
+				default:
+					color = RGB(128, 128, 128);
+				}
+
+				std::stringstream ss;
+				ss << meta.message << std::endl;
+
+				auto level_trace = CFG["log.json"]["log"]["level_trace"].GetInt(1);
+				CFG["log.json"]["log"]["level_trace"].GetDescription(R"(设置Trace日志显示级别(0~6))");
+
+				if (static_cast<int> (meta.level) >= level_trace)
+					XTRACE(color, ss.str().c_str());
+				});
+		}
+		});
+
+	return 1;
+}
