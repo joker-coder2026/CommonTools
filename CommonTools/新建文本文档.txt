@@ -1,4 +1,4 @@
-LRESULT Ctest2016Dlg::OnLoggerConfig(WPARAM wParam, LPARAM lParam)
+LRESULT CMyDlg::OnLoggerConfig(WPARAM wParam, LPARAM lParam)
 {
 	int mode = (int)wParam;
 	CommonTools::Logger::Config* config = (CommonTools::Logger::Config*)lParam;
