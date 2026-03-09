@@ -3852,3 +3852,4 @@ int Bit32Tools::CountSetBits(int value)
 	return count;
 }
 #pragma endregion
+}
