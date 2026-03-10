@@ -18,7 +18,7 @@ inline void XTRACE(LPCTSTR lpszFormat, ...)
 			COPYDATASTRUCT cds;
 			cds.dwData = RGB(0,0,0);
 			cds.lpData = szBuffer;
-			cds.cbData = strlen(szBuffer) + 1;
+			cds.cbData = static_cast<DWORD>(strlen(szBuffer) + 1);
 			SendMessage(tracer_win, WM_COPYDATA, 0, (LPARAM)&cds);
 		}
 	}
@@ -50,7 +50,7 @@ inline void XTRACE(COLORREF color,LPCTSTR lpszFormat, ...)
 			COPYDATASTRUCT cds;
 			cds.dwData = color;
 			cds.lpData = buffer.get();
-			cds.cbData = (strlen(buffer.get()) + 1) * sizeof(char);
+			cds.cbData = static_cast<DWORD>((strlen(buffer.get()) + 1) * sizeof(char));
 			SendMessage(tracer_win, WM_COPYDATA, 0, (LPARAM)&cds);
 		}
 	}

@@ -100,9 +100,8 @@ String valueToString(LargestInt value) {
   } else if (value < 0) {
     uintToString(LargestUInt(-value), current);
     *--current = '-';
-  } else {
-    uintToString(LargestUInt(value), current);
-  }
+  } else
+	  uintToString(LargestUInt(value), current);
   assert(current >= buffer);
   return current;
 }
@@ -156,9 +155,8 @@ String valueToString(double value, bool useSpecialFloats,
 
   // try to ensure we preserve the fact that this was given to us as a double on
   // input
-  if (buffer.find('.') == buffer.npos && buffer.find('e') == buffer.npos) {
-    buffer += ".0";
-  }
+  if (buffer.find('.') == buffer.npos && buffer.find('e') == buffer.npos)
+	  buffer += ".0";
 
   // strip the zero padding from the right
   if (precisionType == PrecisionType::decimalPlaces) {
@@ -321,18 +319,17 @@ static String valueToQuotedStringN(const char* value, size_t length,
     default: {
       if (emitUTF8) {
         unsigned codepoint = static_cast<unsigned char>(*c);
-        if (codepoint < 0x20) {
-          appendHex(result, codepoint);
-        } else {
-          appendRaw(result, codepoint);
-        }
+        if (codepoint < 0x20)
+	        appendHex(result, codepoint);
+        else
+	        appendRaw(result, codepoint);
       } else {
         unsigned codepoint = utf8ToCodepoint(c, end); // modifies `c`
-        if (codepoint < 0x20) {
-          appendHex(result, codepoint);
-        } else if (codepoint < 0x80) {
-          appendRaw(result, codepoint);
-        } else if (codepoint < 0x10000) {
+        if (codepoint < 0x20)
+	        appendHex(result, codepoint);
+        else if (codepoint < 0x80)
+	        appendRaw(result, codepoint);
+        else if (codepoint < 0x10000) {
           // Basic Multilingual Plane
           appendHex(result, codepoint);
         } else {
@@ -565,9 +562,8 @@ bool StyledWriter::isMultilineArray(const Value& value) {
     addChildValues_ = true;
     ArrayIndex lineLength = 4 + (size - 1) * 2; // '[ ' + ', '*n + ' ]'
     for (ArrayIndex index = 0; index < size; ++index) {
-      if (hasCommentForValue(value[index])) {
-        isMultiLine = true;
-      }
+      if (hasCommentForValue(value[index]))
+	      isMultiLine = true;
       writeValue(value[index]);
       lineLength += static_cast<ArrayIndex>(childValues_[index].length());
     }
@@ -786,9 +782,8 @@ bool StyledStreamWriter::isMultilineArray(const Value& value) {
     addChildValues_ = true;
     ArrayIndex lineLength = 4 + (size - 1) * 2; // '[ ' + ', '*n + ' ]'
     for (ArrayIndex index = 0; index < size; ++index) {
-      if (hasCommentForValue(value[index])) {
-        isMultiLine = true;
-      }
+      if (hasCommentForValue(value[index]))
+	      isMultiLine = true;
       writeValue(value[index]);
       lineLength += static_cast<ArrayIndex>(childValues_[index].length());
     }
@@ -959,8 +954,10 @@ void BuiltStyledStreamWriter::writeValue(Value const& value) {
     char const* end;
     bool ok = value.getString(&str, &end);
     if (ok)
-      pushValue(
-          valueToQuotedStringN(str, static_cast<size_t>(end - str), emitUTF8_));
+    {
+	    pushValue(
+		    valueToQuotedStringN(str, static_cast<size_t>(end - str), emitUTF8_));
+    }
     else
       pushValue("");
     break;
@@ -1066,9 +1063,8 @@ bool BuiltStyledStreamWriter::isMultilineArray(Value const& value) {
     addChildValues_ = true;
     ArrayIndex lineLength = 4 + (size - 1) * 2; // '[ ' + ', '*n + ' ]'
     for (ArrayIndex index = 0; index < size; ++index) {
-      if (hasCommentForValue(value[index])) {
-        isMultiLine = true;
-      }
+      if (hasCommentForValue(value[index]))
+	      isMultiLine = true;
       writeValue(value[index]);
       lineLength += static_cast<ArrayIndex>(childValues_[index].length());
     }
@@ -1169,31 +1165,27 @@ StreamWriter* StreamWriterBuilder::newStreamWriter() const {
   const bool emitUTF8 = settings_["emitUTF8"].asBool();
   unsigned int pre = settings_["precision"].asUInt();
   CommentStyle::Enum cs = CommentStyle::All;
-  if (cs_str == "All") {
-    cs = CommentStyle::All;
-  } else if (cs_str == "None") {
-    cs = CommentStyle::None;
-  } else {
-    throwRuntimeError("commentStyle must be 'All' or 'None'");
-  }
+  if (cs_str == "All")
+	  cs = CommentStyle::All;
+  else if (cs_str == "None")
+	  cs = CommentStyle::None;
+  else
+	  throwRuntimeError("commentStyle must be 'All' or 'None'");
   PrecisionType precisionType(significantDigits);
-  if (pt_str == "significant") {
-    precisionType = PrecisionType::significantDigits;
-  } else if (pt_str == "decimal") {
-    precisionType = PrecisionType::decimalPlaces;
-  } else {
-    throwRuntimeError("precisionType must be 'significant' or 'decimal'");
-  }
+  if (pt_str == "significant")
+	  precisionType = PrecisionType::significantDigits;
+  else if (pt_str == "decimal")
+	  precisionType = PrecisionType::decimalPlaces;
+  else
+	  throwRuntimeError("precisionType must be 'significant' or 'decimal'");
   String colonSymbol = " : ";
-  if (eyc) {
-    colonSymbol = ": ";
-  } else if (indentation.empty()) {
-    colonSymbol = ":";
-  }
+  if (eyc)
+	  colonSymbol = ": ";
+  else if (indentation.empty())
+	  colonSymbol = ":";
   String nullSymbol = "null";
-  if (dnp) {
-    nullSymbol.clear();
-  }
+  if (dnp)
+	  nullSymbol.clear();
   if (pre > 17)
     pre = 17;
   String endingLineFeedSymbol;

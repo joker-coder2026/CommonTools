@@ -93,22 +93,19 @@ static inline void uintToString(LargestUInt value, char*& current) {
  */
 template <typename Iter> Iter fixNumericLocale(Iter begin, Iter end) {
   for (; begin != end; ++begin) {
-    if (*begin == ',') {
-      *begin = '.';
-    }
+    if (*begin == ',')
+	    *begin = '.';
   }
   return begin;
 }
 
 template <typename Iter> void fixNumericLocaleInput(Iter begin, Iter end) {
   char decimalPoint = getDecimalPoint();
-  if (decimalPoint == '\0' || decimalPoint == '.') {
-    return;
-  }
+  if (decimalPoint == '\0' || decimalPoint == '.')
+	  return;
   for (; begin != end; ++begin) {
-    if (*begin == '.') {
-      *begin = decimalPoint;
-    }
+    if (*begin == '.')
+	    *begin = decimalPoint;
   }
 }
 
@@ -119,14 +116,12 @@ template <typename Iter> void fixNumericLocaleInput(Iter begin, Iter end) {
 template <typename Iter>
 Iter fixZerosInTheEnd(Iter begin, Iter end, unsigned int precision) {
   for (; begin != end; --end) {
-    if (*(end - 1) != '0') {
-      return end;
-    }
+    if (*(end - 1) != '0')
+	    return end;
     // Don't delete the last zero before the decimal point.
     if (begin != (end - 1) && begin != (end - 2) && *(end - 2) == '.') {
-      if (precision) {
-        return end;
-      }
+      if (precision)
+	      return end;
       return end - 2;
     }
   }

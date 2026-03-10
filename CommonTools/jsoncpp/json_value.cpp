@@ -51,9 +51,8 @@ namespace Json {
 template <typename T>
 static std::unique_ptr<T> cloneUnique(const std::unique_ptr<T>& p) {
   std::unique_ptr<T> r;
-  if (p) {
-    r = std::unique_ptr<T>(new T(*p));
-  }
+  if (p)
+	  r = std::unique_ptr<T>(new T(*p));
   return r;
 }
 
@@ -503,9 +502,8 @@ bool Value::operator<(const Value& other) const {
   case booleanValue:
     return value_.bool_ < other.value_.bool_;
   case stringValue: {
-    if ((value_.string_ == nullptr) || (other.value_.string_ == nullptr)) {
-      return other.value_.string_ != nullptr;
-    }
+    if ((value_.string_ == nullptr) || (other.value_.string_ == nullptr))
+	    return other.value_.string_ != nullptr;
     unsigned this_len;
     unsigned other_len;
     char const* this_str;
@@ -558,9 +556,8 @@ bool Value::operator==(const Value& other) const {
   case booleanValue:
     return value_.bool_ == other.value_.bool_;
   case stringValue: {
-    if ((value_.string_ == nullptr) || (other.value_.string_ == nullptr)) {
-      return (value_.string_ == other.value_.string_);
-    }
+    if ((value_.string_ == nullptr) || (other.value_.string_ == nullptr))
+	    return (value_.string_ == other.value_.string_);
     unsigned this_len;
     unsigned other_len;
     char const* this_str;
@@ -912,12 +909,13 @@ void Value::resize(ArrayIndex newSize) {
   if (newSize == 0)
     clear();
   else if (newSize > oldSize)
-    for (ArrayIndex i = oldSize; i < newSize; ++i)
-      (*this)[i];
+  {
+	  for (ArrayIndex i = oldSize; i < newSize; ++i)
+		  (*this)[i];
+  }
   else {
-    for (ArrayIndex index = newSize; index < oldSize; ++index) {
-      value_.map_->erase(index);
-    }
+    for (ArrayIndex index = newSize; index < oldSize; ++index)
+	    value_.map_->erase(index);
     JSON_ASSERT(size() == newSize);
   }
 }
@@ -992,9 +990,8 @@ void Value::dupPayload(const Value& other) {
                            &str);
       value_.string_ = duplicateAndPrefixStringValue(str, len);
       setIsAllocated(true);
-    } else {
-      value_.string_ = other.value_.string_;
-    }
+    } else
+	    value_.string_ = other.value_.string_;
     break;
   case arrayValue:
   case objectValue:
@@ -1128,9 +1125,8 @@ Value& Value::append(const Value& value) { return append(Value(value)); }
 Value& Value::append(Value&& value) {
   JSON_ASSERT_MESSAGE(type() == nullValue || type() == arrayValue,
                       "in Json::Value::append: requires arrayValue");
-  if (type() == nullValue) {
-    *this = Value(arrayValue);
-  }
+  if (type() == nullValue)
+	  *this = Value(arrayValue);
   return this->value_.map_->emplace(size(), std::move(value)).first->second;
 }
 
@@ -1142,12 +1138,10 @@ bool Value::insert(ArrayIndex index, Value&& newValue) {
   JSON_ASSERT_MESSAGE(type() == nullValue || type() == arrayValue,
                       "in Json::Value::insert: requires arrayValue");
   ArrayIndex length = size();
-  if (index > length) {
-    return false;
-  }
-  for (ArrayIndex i = length; i > index; i--) {
-    (*this)[i] = std::move((*this)[i - 1]);
-  }
+  if (index > length)
+	  return false;
+  for (ArrayIndex i = length; i > index; i--)
+	  (*this)[i] = std::move((*this)[i - 1]);
   (*this)[index] = std::move(newValue);
   return true;
 }
@@ -1165,9 +1159,8 @@ Value Value::get(String const& key, Value const& defaultValue) const {
 }
 
 bool Value::removeMember(const char* begin, const char* end, Value* removed) {
-  if (type() != objectValue) {
-    return false;
-  }
+  if (type() != objectValue)
+	  return false;
   CZString actualKey(begin, static_cast<unsigned>(end - begin),
                      CZString::noDuplication);
   auto it = value_.map_->find(actualKey);
@@ -1196,14 +1189,12 @@ void Value::removeMember(const char* key) {
 void Value::removeMember(const String& key) { removeMember(key.c_str()); }
 
 bool Value::removeIndex(ArrayIndex index, Value* removed) {
-  if (type() != arrayValue) {
-    return false;
-  }
+  if (type() != arrayValue)
+	  return false;
   CZString key(index);
   auto it = value_.map_->find(key);
-  if (it == value_.map_->end()) {
-    return false;
-  }
+  if (it == value_.map_->end())
+	  return false;
   if (removed)
     *removed = it->second;
   ArrayIndex oldSize = size();
@@ -1240,9 +1231,8 @@ Value::Members Value::getMemberNames() const {
   members.reserve(value_.map_->size());
   ObjectValues::const_iterator it = value_.map_->begin();
   ObjectValues::const_iterator itEnd = value_.map_->end();
-  for (; it != itEnd; ++it) {
-    members.push_back(String((*it).first.data(), (*it).first.length()));
-  }
+  for (; it != itEnd; ++it)
+	  members.push_back(String((*it).first.data(), (*it).first.length()));
   return members;
 }
 
@@ -1543,9 +1533,9 @@ void Path::makePath(const String& path, const InArgs& in) {
     } else if (*current == '%') {
       addPathInArg(path, in, itInArg, PathArgument::kindKey);
       ++current;
-    } else if (*current == '.' || *current == ']') {
-      ++current;
-    } else {
+    } else if (*current == '.' || *current == ']')
+	    ++current;
+    else {
       const char* beginName = current;
       while (current != end && !strchr("[.", *current))
         ++current;
@@ -1561,9 +1551,8 @@ void Path::addPathInArg(const String& /*path*/, const InArgs& in,
     // Error: missing argument %d
   } else if ((*itInArg)->kind_ != kind) {
     // Error: bad argument type
-  } else {
-    args_.push_back(**itInArg++);
-  }
+  } else
+	  args_.push_back(**itInArg++);
 }
 
 void Path::invalidPath(const String& /*path*/, int /*location*/) {

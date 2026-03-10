@@ -70,9 +70,8 @@ ValueIteratorBase::computeDistance(const SelfType& other) const {
 	// std::map::iterator. As begin() and end() are two instance
 	// of the default std::map::iterator, they can not be compared.
 	// To allow this, we handle this comparison specifically.
-	if (isNull_ && other.isNull_) {
+	if (isNull_ && other.isNull_)
 		return 0;
-	}
 
 	// Usage of std::distance is not portable (does not compile with Sun Studio 12
 	// RogueWave STL,
@@ -81,16 +80,14 @@ ValueIteratorBase::computeDistance(const SelfType& other) const {
 	//   return difference_type( std::distance( current_, other.current_ ) );
 	difference_type myDistance = 0;
 	for (Value::ObjectValues::iterator it = current_; it != other.current_;
-	     ++it) {
+	     ++it)
 		++myDistance;
-	}
 	return myDistance;
 }
 
 bool ValueIteratorBase::isEqual(const SelfType& other) const {
-	if (isNull_) {
+	if (isNull_)
 		return other.isNull_;
-	}
 	return current_ == other.current_;
 }
 
