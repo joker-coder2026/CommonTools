@@ -155,7 +155,7 @@ namespace CommonTools
 		 * @param [in] format - 格式化参数
 		 * @return 格式化结果
 		 **/
-		static void Format(std::string& out, const char* format, ...);
+		static int Format(std::string& out, const char* format, ...);
 
 		/**
 		 * @brief GBK 转 UTF-8

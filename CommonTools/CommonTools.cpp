@@ -218,26 +218,27 @@ namespace CommonTools
 		return result;
 	}
 
-	void StringUtils::Format(std::string& out, const char* format, ...)
+	int StringUtils::Format(std::string& out, const char* format, ...)
 	{
 		if (!format)
 		{
-			out.clear(); // 清空内容，避免使用未定义的格式字符串
+			out.clear();
 			throw std::invalid_argument("StringUtils::Format: format string is null");
 		}
 
-		va_list args;
-		va_start(args, format);
-		const int len = vsnprintf(nullptr, 0, format, args);
-		va_end(args);
+		va_list args_len;
+		va_start(args_len, format);
+		const int len = vsnprintf(nullptr, 0, format, args_len);
+		va_end(args_len);
 
 		if (len < 0)
 		{
 			out.clear();
-			throw std::runtime_error("StringUtils::Format: failed to calculate format length");
+			throw std::runtime_error("StringUtils::Format: failed to calculate format length (error=" + std::to_string(len) + ")");
 		}
 
 		out.clear();
+		int result = 0; 
 		if (len > 0)
 		{
 			const size_t required_size = static_cast<size_t>(len) + 1;
@@ -245,20 +246,25 @@ namespace CommonTools
 				out.reserve(static_cast<size_t>(required_size * 1.5));
 			out.resize(required_size);
 
-			va_start(args, format);
-			const int ret = vsnprintf(&out[0], out.size(), format, args);
-			va_end(args);
+			va_list args_format;
+			va_start(args_format, format);
+			const int ret = vsnprintf(&out[0], out.size(), format, args_format);
+			va_end(args_format);
 
 			if (ret < 0 || static_cast<size_t>(ret) != static_cast<size_t>(len))
 			{
 				out.clear();
-				throw std::runtime_error("StringUtils::Format: failed to format string (ret=" + std::to_string(ret) + ")");
+				throw std::runtime_error("StringUtils::Format: failed to format string (ret=" + std::to_string(ret) + ", expected=" + std::to_string(len) + ")");
 			}
 
 			out.resize(static_cast<size_t>(len));
+			result = len;
 		}
-	}	
-	
+
+		// 返回值：成功格式化的字符数（空字符串返回0）
+		return result;
+	}
+
 	std::string StringUtils::G2U(const std::string& gbk)
 	{
 #ifndef _WIN32
