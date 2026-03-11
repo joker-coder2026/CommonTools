@@ -37,7 +37,7 @@ namespace CommonTools
 {
 #pragma region BitTools
 	// ========== 32/64位通用实现 ==========
-	template<int BitWidth>
+	template <int BitWidth>
 	void BitTools<BitWidth>::Set(ValueType& value, int bit_idx, bool bit_value)
 	{
 		CheckBitIndex(bit_idx);
@@ -46,7 +46,7 @@ namespace CommonTools
 		value = (value & ~static_cast<ValueType>(mask)) | (bit_value ? static_cast<ValueType>(mask) : 0);
 	}
 
-	template<int BitWidth>
+	template <int BitWidth>
 	bool BitTools<BitWidth>::Get(ValueType value, int bit_idx)
 	{
 		CheckBitIndex(bit_idx);
@@ -55,7 +55,7 @@ namespace CommonTools
 		return (unsigned_val >> static_cast<UnsignedType>(bit_idx)) & ShiftBase;
 	}
 
-	template<int BitWidth>
+	template <int BitWidth>
 	void BitTools<BitWidth>::Toggle(ValueType& value, int bit_idx)
 	{
 		CheckBitIndex(bit_idx);
@@ -63,12 +63,12 @@ namespace CommonTools
 		value ^= static_cast<ValueType>(mask);
 	}
 
-	template<int BitWidth>
+	template <int BitWidth>
 	int BitTools<BitWidth>::CountSetBits(ValueType value) noexcept
 	{
 		const UnsignedType unsigned_val = static_cast<UnsignedType>(value);
 		UnsignedType val = unsigned_val;
-		int count = 0;
+		auto count = 0;
 		// Brian Kernighan算法：循环次数=置1位数，32/64位通用且最优
 		while (val != 0)
 		{
@@ -210,7 +210,8 @@ namespace CommonTools
 			va_end(args);
 
 			if (ret < 0 || static_cast<size_t>(ret) != static_cast<size_t>(len))
-				throw std::runtime_error("StringUtils::Format: failed to format string (ret=" + std::to_string(ret) + ")");
+				throw std::runtime_error(
+					"StringUtils::Format: failed to format string (ret=" + std::to_string(ret) + ")");
 
 			result.resize(static_cast<size_t>(len));
 		}
@@ -234,11 +235,12 @@ namespace CommonTools
 		if (len < 0)
 		{
 			out.clear();
-			throw std::runtime_error("StringUtils::Format: failed to calculate format length (error=" + std::to_string(len) + ")");
+			throw std::runtime_error(
+				"StringUtils::Format: failed to calculate format length (error=" + std::to_string(len) + ")");
 		}
 
 		out.clear();
-		int result = 0; 
+		auto result = 0;
 		if (len > 0)
 		{
 			const size_t required_size = static_cast<size_t>(len) + 1;
@@ -254,7 +256,9 @@ namespace CommonTools
 			if (ret < 0 || static_cast<size_t>(ret) != static_cast<size_t>(len))
 			{
 				out.clear();
-				throw std::runtime_error("StringUtils::Format: failed to format string (ret=" + std::to_string(ret) + ", expected=" + std::to_string(len) + ")");
+				throw std::runtime_error(
+					"StringUtils::Format: failed to format string (ret=" + std::to_string(ret) + ", expected=" +
+					std::to_string(len) + ")");
 			}
 
 			out.resize(static_cast<size_t>(len));
@@ -272,26 +276,28 @@ namespace CommonTools
 #else
 		if (gbk.empty()) return {};
 
-		const int src_len = static_cast<int>(gbk.size());
-		const int w_len = ::MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, gbk.c_str(), src_len, nullptr, 0);
+		const auto src_len = static_cast<int>(gbk.size());
+		const int w_len = MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, gbk.c_str(), src_len, nullptr, 0);
 		if (w_len <= 0)
 			throw std::runtime_error("G2U: GBK to WideChar failed (error=" + std::to_string(GetLastError()) + ")");
 
 		std::wstring w_str;
 		w_str.reserve(static_cast<size_t>(w_len));
 		w_str.resize(static_cast<size_t>(w_len));
-		if (::MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, gbk.c_str(), src_len, &w_str[0], w_len) <= 0)
-			throw std::runtime_error("G2U: GBK to WideChar convert failed (error=" + std::to_string(GetLastError()) + ")");
+		if (MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, gbk.c_str(), src_len, &w_str[0], w_len) <= 0)
+			throw std::runtime_error(
+				"G2U: GBK to WideChar convert failed (error=" + std::to_string(GetLastError()) + ")");
 
-		const int u8_len = ::WideCharToMultiByte(CP_UTF8, 0, w_str.c_str(), w_len, nullptr, 0, nullptr, nullptr);
+		const int u8_len = WideCharToMultiByte(CP_UTF8, 0, w_str.c_str(), w_len, nullptr, 0, nullptr, nullptr);
 		if (u8_len <= 0)
 			throw std::runtime_error("G2U: WideChar to UTF8 failed (error=" + std::to_string(GetLastError()) + ")");
 
 		std::string utf8_str;
 		utf8_str.reserve(static_cast<size_t>(u8_len));
 		utf8_str.resize(static_cast<size_t>(u8_len));
-		if (::WideCharToMultiByte(CP_UTF8, 0, w_str.c_str(), w_len, &utf8_str[0], u8_len, nullptr, nullptr) <= 0)
-			throw std::runtime_error("G2U: WideChar to UTF8 convert failed (error=" + std::to_string(GetLastError()) + ")");
+		if (WideCharToMultiByte(CP_UTF8, 0, w_str.c_str(), w_len, &utf8_str[0], u8_len, nullptr, nullptr) <= 0)
+			throw std::runtime_error(
+				"G2U: WideChar to UTF8 convert failed (error=" + std::to_string(GetLastError()) + ")");
 
 		utf8_str.resize(static_cast<size_t>(u8_len));
 		return utf8_str; // NRVO优化生效
@@ -305,26 +311,28 @@ namespace CommonTools
 #else
 		if (utf8.empty()) return {};
 
-		const int src_len = static_cast<int>(utf8.size());
-		const int w_len = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, utf8.c_str(), src_len, nullptr, 0);
+		const auto src_len = static_cast<int>(utf8.size());
+		const int w_len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, utf8.c_str(), src_len, nullptr, 0);
 		if (w_len <= 0)
 			throw std::runtime_error("U2G: UTF8 to WideChar failed (error=" + std::to_string(GetLastError()) + ")");
 
 		std::wstring w_str;
 		w_str.reserve(static_cast<size_t>(w_len));
 		w_str.resize(static_cast<size_t>(w_len));
-		if (::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, utf8.c_str(), src_len, &w_str[0], w_len) <= 0)
-			throw std::runtime_error("U2G: UTF8 to WideChar convert failed (error=" + std::to_string(GetLastError()) + ")");
+		if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, utf8.c_str(), src_len, &w_str[0], w_len) <= 0)
+			throw std::runtime_error(
+				"U2G: UTF8 to WideChar convert failed (error=" + std::to_string(GetLastError()) + ")");
 
-		const int gbk_len = ::WideCharToMultiByte(CP_ACP, 0, w_str.c_str(), w_len, nullptr, 0, nullptr, nullptr);
+		const int gbk_len = WideCharToMultiByte(CP_ACP, 0, w_str.c_str(), w_len, nullptr, 0, nullptr, nullptr);
 		if (gbk_len <= 0)
 			throw std::runtime_error("U2G: WideChar to GBK failed (error=" + std::to_string(GetLastError()) + ")");
 
 		std::string gbk_str;
 		gbk_str.reserve(static_cast<size_t>(gbk_len));
 		gbk_str.resize(static_cast<size_t>(gbk_len));
-		if (::WideCharToMultiByte(CP_ACP, 0, w_str.c_str(), w_len, &gbk_str[0], gbk_len, nullptr, nullptr) <= 0)
-			throw std::runtime_error("U2G: WideChar to GBK convert failed (error=" + std::to_string(GetLastError()) + ")");
+		if (WideCharToMultiByte(CP_ACP, 0, w_str.c_str(), w_len, &gbk_str[0], gbk_len, nullptr, nullptr) <= 0)
+			throw std::runtime_error(
+				"U2G: WideChar to GBK convert failed (error=" + std::to_string(GetLastError()) + ")");
 
 		gbk_str.resize(static_cast<size_t>(gbk_len));
 		return gbk_str;
@@ -333,42 +341,72 @@ namespace CommonTools
 
 	std::string StringUtils::TrimLeft(const std::string& str)
 	{
-		size_t start = str.find_first_not_of(" \t\n\r\v\f");
-		return (start == std::string::npos) ? str : str.substr(start);
+		if (str.empty())
+			return str;
+
+		static const auto whitespace = " \t\n\r\v\f";
+		const size_t start = str.find_first_not_of(whitespace);
+
+		return (start == std::string::npos) ? std::string() : str.substr(start);
 	}
 
 	std::string StringUtils::TrimRight(const std::string& str)
 	{
-		size_t end = str.find_last_not_of(" \t\n\r\v\f");
-		return (end == std::string::npos) ? str : str.substr(0, end + 1);
+		if (str.empty())
+			return str;
+
+		static const auto whitespace = " \t\n\r\v\f";
+		const size_t end = str.find_last_not_of(whitespace);
+
+		return (end == std::string::npos) ? std::string() : str.substr(0, end + 1);
 	}
 
 	std::string StringUtils::Trim(const std::string& str)
 	{
-		return TrimLeft(TrimRight(str));
+		return TrimRight(TrimLeft(str));
 	}
 
 	std::string StringUtils::Trim(const std::string& str, const std::string& chars)
 	{
-		size_t start = str.find_first_not_of(chars);
-		std::string temp = (start == std::string::npos) ? str : str.substr(start);
-		size_t end = temp.find_last_not_of(chars);
-		return (end == std::string::npos) ? temp : temp.substr(0, end + 1);
+		if (str.empty() || chars.empty()) return str;
+
+		const size_t start = str.find_first_not_of(chars);
+		if (start == std::string::npos)
+			return std::string();
+
+		const size_t end = str.find_last_not_of(chars);
+		if (end == std::string::npos)
+			return std::string();
+
+		if (start > end)
+			return std::string();
+
+		return str.substr(start, end - start + 1);
 	}
 
 	std::string StringUtils::ToUpper(const std::string& str)
 	{
+		if (str.empty()) return str;
+
 		std::string res = str;
-		for (char& c : res)
-			c = static_cast<char>(toupper(static_cast<unsigned char>(c))); // c = toupper(c);
+		char* ptr = &res[0];
+		const size_t len = res.size();
+
+		for (size_t i = 0; i < len; ++i)
+			ptr[i] = static_cast<char>(toupper(static_cast<unsigned char>(ptr[i])));
 		return res;
 	}
 
 	std::string StringUtils::ToLower(const std::string& str)
 	{
+		if (str.empty()) return str;
+
 		std::string res = str;
-		for (char& c : res)
-			c = static_cast<char>(tolower(static_cast<unsigned char>(c))); // c = tolower(c);
+		char* ptr = &res[0];
+		const size_t len = res.size();
+
+		for (size_t i = 0; i < len; ++i)
+			ptr[i] = static_cast<char>(tolower(static_cast<unsigned char>(ptr[i])));
 		return res;
 	}
 #pragma endregion
@@ -376,13 +414,16 @@ namespace CommonTools
 #pragma region TimePoint
 	TimePoint::TimePoint(std::time_t timestamp)
 	{
-		time_point_ = (timestamp == 0) ? std::chrono::system_clock::now()
-			: std::chrono::system_clock::from_time_t(timestamp);
+		time_point_ = (timestamp == 0)
+			              ? std::chrono::system_clock::now()
+			              : std::chrono::system_clock::from_time_t(timestamp);
 	}
 
-	TimePoint::TimePoint(const std::chrono::system_clock::time_point& tp) : time_point_(tp) {}
+	TimePoint::TimePoint(const std::chrono::system_clock::time_point& tp) : time_point_(tp)
+	{
+	}
 
-	int64_t TimePoint::GetTimeStamp() const
+	int64_t TimePoint::ToTimeStamp()
 	{
 		// 修复：显式指定 duration_cast 模板参数，避免类型推导错误
 		return std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -390,83 +431,102 @@ namespace CommonTools
 		).count();
 	}
 
-	TimePoint TimePoint::Now()
+	std::string TimePoint::ToString(const std::string& format)
 	{
-		return TimePoint(std::chrono::system_clock::now());
-	}
+		if (format.empty())
+			throw std::invalid_argument("format empty");
 
-	std::string TimePoint::ToString(const std::string& format) const
-	{
-		if (format.empty()) throw std::invalid_argument("Empty format");
+		const auto sec_ts = std::chrono::system_clock::to_time_t(time_point_);
+		const auto ms = static_cast<int>(ToTimeStamp() % 1000);
+		char ms_buf[4] = {0};
+		FormatMs(ms, ms_buf);
 
-		const std::time_t sec_ts = std::chrono::system_clock::to_time_t(time_point_);
-		// 修复：显式指定模板参数，拆分计算步骤（C++14 类型推导更严格）
-		const auto epoch = time_point_.time_since_epoch();
-		const auto ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
-		const int ms = static_cast<int>(std::abs(ms_duration.count() % 1000));
+		const size_t ms_pos = format.find("%f") != std::string::npos
+			                      ? format.find("%f")
+			                      : format.find("%F");
 
-		char ms_buf[4] = { 0 };
-		std::snprintf(ms_buf, sizeof(ms_buf), "%03d", ms);
-
-		const size_t ms_pos = (format.find("%f") != std::string::npos) ? format.find("%f") : format.find("%F");
-		std::tm tm = { 0 };
-		if (localtime_s(&tm, &sec_ts) != 0) throw std::runtime_error("Time convert failed");
+		std::tm tm{};
+		if (localtime_s(&tm, &sec_ts) != 0)
+			throw std::runtime_error("localtime_s failed");
 
 		std::ostringstream oss;
 		if (ms_pos != std::string::npos)
 		{
 			oss << std::put_time(&tm, format.substr(0, ms_pos).c_str())
-				<< format[ms_pos - 1] << ms_buf << format.substr(ms_pos + 2);
+				<< ms_buf
+				<< format.substr(ms_pos + 2);
 		}
 		else
 			oss << std::put_time(&tm, format.c_str());
+
 		return oss.str();
 	}
 
-	std::string TimePoint::TimestampToString(int64_t timestamp, const std::string& format)
+	TimePoint TimePoint::Now()
 	{
-		if (timestamp < 0) throw std::invalid_argument("Negative timestamp");
-
-		const std::time_t sec = static_cast<std::time_t>(timestamp / 1000);
-		const int ms = static_cast<int>(timestamp % 1000);
-		// 修复：显式构造 milliseconds，避免隐式转换
-		const auto tp = std::chrono::system_clock::from_time_t(sec) + std::chrono::milliseconds(ms);
-		return TimePoint(tp).ToString(format);
+		return TimePoint(std::chrono::system_clock::now());
 	}
 
-	int64_t TimePoint::StringToTimestamp(const std::string& timeStr, const std::string& format)
+	std::string TimePoint::ToString(int64_t timestamp, const std::string& format)
 	{
-		if (timeStr.empty() || format.empty()) throw std::invalid_argument("Empty input");
+		if (timestamp < 0)
+			throw std::invalid_argument("timestamp < 0");
+
+		const auto sec = timestamp / 1000;
+		const auto ms = std::chrono::milliseconds(static_cast<int>(timestamp % 1000));
+		return TimePoint(std::chrono::system_clock::from_time_t(sec) + ms).ToString(format);
+	}
+
+	int64_t TimePoint::ToTimestamp(const std::string& timeStr, const std::string& format)
+	{
+		if (timeStr.empty() || format.empty())
+			throw std::invalid_argument("empty input");
 
 		std::string fmt = format;
-		const size_t ms_pos = (fmt.find("%f") != std::string::npos) ? fmt.find("%f") : fmt.find("%F");
-		if (ms_pos != std::string::npos) fmt.erase(ms_pos, 2);
+		const size_t ms_pos = fmt.find("%f") != std::string::npos ? fmt.find("%f") : fmt.find("%F");
+		if (ms_pos != std::string::npos)
+			fmt.erase(ms_pos, 2);
 
-		int ms = 0;
-		std::string time_str = timeStr;
-		auto sep_it = std::find_if(timeStr.rbegin(), timeStr.rend(), [](unsigned char c) { return !isdigit(c); });
-		if (sep_it != timeStr.rend())
+		// 提取毫秒
+		auto ms = 0;
+		size_t sep = timeStr.size();
+		while (sep > 0 && isdigit(static_cast<unsigned char>(timeStr[sep - 1])))
+			--sep;
+
+		std::string base_time = timeStr;
+		if (sep < timeStr.size())
 		{
-			const size_t sep_pos = static_cast<size_t>(timeStr.rend() - sep_it - 1);
-			time_str = timeStr.substr(0, sep_pos);
-			std::string ms_str = timeStr.substr(sep_pos + 1, 3);
-			for (char c : ms_str) if (isdigit(c)) ms = ms * 10 + (c - '0');
-			ms = ms > 999 ? 999 : ms;
+			std::string ms_str = timeStr.substr(sep, 3);
+			for (char c : ms_str)
+				if (isdigit(static_cast<unsigned char>(c))) ms = ms * 10 + (c - '0');
+			ms = ClampInt(ms, 0, 999);
+			base_time = timeStr.substr(0, sep);
 		}
 
-		std::tm tm = { 0 };
-		std::istringstream iss(time_str);
+		std::tm tm{};
+		std::istringstream iss(base_time);
 		iss >> std::get_time(&tm, fmt.c_str());
-		if (iss.fail()) throw std::invalid_argument("Invalid time format");
+		if (iss.fail() || !iss.eof())
+			throw std::invalid_argument("parse time failed");
 
-		const std::time_t t = std::mktime(&tm);
-		if (t == -1) throw std::invalid_argument("Time convert failed");
+		const std::time_t t = mktime(&tm);
+		if (t == -1)
+			throw std::invalid_argument("mktime failed");
 
-		// 修复：显式指定 duration_cast 模板参数，拆分计算
-		const auto tp = std::chrono::system_clock::from_time_t(t) + std::chrono::milliseconds(ms);
-		const auto epoch = tp.time_since_epoch();
-		const auto ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
-		return ms_duration.count();
+		auto tp = std::chrono::system_clock::from_time_t(t) + std::chrono::milliseconds(ms);
+		return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count();
+	}
+
+	void TimePoint::FormatMs(int ms, char* buf)
+	{
+		std::snprintf(buf, 4, "%03d", ms < 0 ? 0 : (ms > 999 ? 999 : ms));
+	}
+
+	int TimePoint::ClampInt(int val, int min_val, int max_val)
+	{
+		if (val < min_val) return min_val;
+		if (val > max_val) return max_val;
+		return val;
 	}
 #pragma endregion
 

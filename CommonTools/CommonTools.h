@@ -223,15 +223,16 @@ namespace CommonTools
 		explicit TimePoint(std::time_t timestamp = 0);
 		explicit TimePoint(const std::chrono::system_clock::time_point& tp);
 
-		int64_t GetTimeStamp() const;
-		std::string ToString(const std::string& format) const;
+		int64_t ToTimeStamp();
+		std::string ToString(const std::string& format);
 
 		static TimePoint Now();
-		static std::string TimestampToString(int64_t timestamp, const std::string& format);
-		static int64_t StringToTimestamp(const std::string& timeStr, const std::string& format);
-
+		static std::string ToString(int64_t timestamp, const std::string& format);
+		static int64_t ToTimestamp(const std::string& timeStr, const std::string& format);
 	private:
 		std::chrono::system_clock::time_point time_point_;
+		static void FormatMs(int ms, char* buf);
+		static int ClampInt(int val, int min_val, int max_val);
 	}; 
 #pragma endregion
 
