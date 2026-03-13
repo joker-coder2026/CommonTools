@@ -46,22 +46,22 @@ namespace CommonTools
 	// 位操作工具模板类（模板参数：BitWidth=32/64）
 	// 模板参数仅支持 32 / 64 位，非法位宽（如 16）会在编译期报错，避免运行时错误；
 	// 类型萃取自动匹配整数类型，无需手动指定，减少使用错误。
-	template<int BitWidth>
+	template <int BitWidth>
 	class COMMONTOOLS_API BitTools
 	{
 	public:
 		// 类型萃取：根据位宽自动匹配整数类型
-		using ValueType = typename std::conditional<BitWidth == 32, int, int64_t>::type;
-		using UnsignedType = typename std::conditional<BitWidth == 32, uint32_t, uint64_t>::type;
+		using ValueType = std::conditional_t<BitWidth == 32, int, int64_t>;
+		using UnsignedType = std::conditional_t<BitWidth == 32, uint32_t, uint64_t>;
 
 		// ========== 核心接口（32/64位通用） ==========
 		// 设置指定位（0/1）
 		static void Set(ValueType& value, int bit_idx, bool bit_value);
-		// 获取指定位值
+		// 获取指个位值
 		static bool Get(ValueType value, int bit_idx);
 		// 翻转指定位
 		static void Toggle(ValueType& value, int bit_idx);
-		// 判断指定位是否为1（语义封装）
+		// 判断指个位是否为1（语义封装）
 		static bool IsSet(ValueType value, int bit_idx) { return Get(value, bit_idx); }
 		// 统计置1位数（Brian Kernighan算法）
 		static int CountSetBits(ValueType value) noexcept;
@@ -73,7 +73,7 @@ namespace CommonTools
 		static constexpr UnsignedType ShiftBase = static_cast<UnsignedType>(1);
 
 		// 校验位索引（内联+无符号比较，零开销）
-		static inline void CheckBitIndex(int bit_idx)
+		static void CheckBitIndex(int bit_idx)
 		{
 			if (static_cast<UnsignedType>(bit_idx) > MaxBitIndex)
 			{
@@ -98,7 +98,6 @@ namespace CommonTools
 	class COMMONTOOLS_API StringUtils
 	{
 	public:
-
 		/**
 		 * @brief
 		 * @param [in] value - bool，short，int，float，double等常规数据类型的值
@@ -229,11 +228,12 @@ namespace CommonTools
 		static TimePoint Now();
 		static std::string ToString(int64_t timestamp, const std::string& format);
 		static int64_t ToTimestamp(const std::string& timeStr, const std::string& format);
+
 	private:
 		std::chrono::system_clock::time_point time_point_;
 		static void FormatMs(int ms, char* buf);
 		static int ClampInt(int val, int min_val, int max_val);
-	}; 
+	};
 #pragma endregion
 
 #pragma region FileSystem
@@ -253,14 +253,13 @@ namespace CommonTools
 		 * @return 检查结果
 		 **/
 		static bool IsFile(const std::string& path);
-		static bool CreateFileA(const std::string& path);
 
 		/**
 		 * @brief 创建文件
 		 * @param [in] path - 文件路径
 		 * @return 创建结果
 		 **/
-		static bool CreateFile(const std::string& path);
+		static bool CreateFileX(const std::string& path);
 
 		/**
 		 * @brief 重命名文件
@@ -268,18 +267,7 @@ namespace CommonTools
 		 * @param [in] dstpath - 新文件路径
 		 * @return 重命名结果
 		 **/
-		static bool RenameFile(const std::string& srcpath, const std::string& dstpath);
-		static bool CopyFileA(const std::string& srcpath, const std::string& dstpath);
-		static bool MoveFileA(const std::string& srcpath, const std::string& dstpath);
-		static bool DeleteFileA(const std::string& path);
-
-		/**
-		 * @brief 拷贝文件
-		 * @param [in] srcpath - 原文件路径
-		 * @param [in] dstpath - 新文件路径
-		 * @return 拷贝结果
-		 **/
-		static bool CopyFile(const std::string& srcpath, const std::string& dstpath);
+		static bool RenameFileX(const std::string& srcpath, const std::string& dstpath);
 
 		/**
 		 * @brief 移动文件
@@ -287,22 +275,22 @@ namespace CommonTools
 		 * @param [in] dstpath - 新文件路径
 		 * @return 移动结果
 		 **/
-		static bool MoveFile(const std::string& srcpath, const std::string& dstpath);
+		static bool MoveFileX(const std::string& srcpath, const std::string& dstpath);
+
+		/**
+		 * @brief 拷贝文件
+		 * @param [in] srcpath - 原文件路径
+		 * @param [in] dstpath - 新文件路径
+		 * @return 拷贝结果
+		 **/
+		static bool CopyFileX(const std::string& srcpath, const std::string& dstpath);
 
 		/**
 		 * @brief 删除文件
 		 * @param [in] path - 文件路径
 		 * @return 删除结果
 		 **/
-		static bool DeleteFile(const std::string& path);
-
-		/**
-		 * @brief 获取目录下所有文件或获取指定格式文件
-		 * @param [in] path - 文件路径
-		 * @param [in] extension - 扩展名为空时，获取目录下全部文件；扩展名不为空时，获取指定格式文件（如：".txt"）
-		 * @return 文件列表结果
-		 **/
-		static std::vector<std::string> GetFiles(const std::string& path, const std::string& extension);
+		static bool DeleteFileX(const std::string& path);
 
 		/**
 		 * @brief 获取文件大小（字节单位）
@@ -333,18 +321,27 @@ namespace CommonTools
 		static std::string GetFileName(const std::string& path);
 
 		/**
-		 * @brief 获取文件路径（不包含文件名）
-		 * @param [in] path - 文件路径
-		 * @return 文件路径
-		 **/
-		static std::string GetFilePath(const std::string& path);
-
-		/**
 		 * @brief 获取文件扩展名
 		 * @param [in] path - 文件路径
 		 * @return 文件扩展名
 		 **/
 		static std::string GetFileExtensionName(const std::string& path);
+
+		/**
+		 * @brief 获取文件路径（不包含文件名）
+		 * @param [in] path - 文件路径
+		 * @return 文件路径
+		 **/
+		static std::string GetFileDirectory(const std::string& path);
+
+		/**
+		 * @brief 获取目录下所有文件或获取指定格式文件
+		 * @param [in] path - 文件路径
+		 * @param [in] extension - 扩展名为空时，获取目录下全部文件；扩展名不为空时，获取指定格式文件（如：".txt"）
+		 * @return 文件列表结果
+		 **/
+		static std::vector<std::string> GetFilesList(const std::string& path, const std::string& extension);
+
 
 		/**
 		 * @brief 检查是否为目录
@@ -372,7 +369,7 @@ namespace CommonTools
 		 * @param [in] path - 目录路径
 		 * @return 目录列表
 		 **/
-		static std::vector<std::string> GetDirectorys(const std::string& path);
+		static std::vector<std::string> GetDirectorysList(const std::string& path);
 
 		/**
 		 * @brief 获取实例当前工作目录
@@ -405,77 +402,154 @@ namespace CommonTools
 	};
 #pragma endregion
 
-#pragma region IniManager
-	class COMMONTOOLS_API IniManager
+#pragma region ConfigManager
+	// ===================== 1. 抽象策略接口声明 =====================
+	class IConfigHandler
 	{
-		struct Convert
-		{
-			static std::string ToString(int value);
-			static std::string ToString(bool value);
-			static std::string ToString(double value);
-			static int ToInt(const std::string& value, int defaultValue = 0);
-			static bool ToBool(const std::string& value, bool defaultValue = false);
-			static double ToDouble(const std::string& value, double defaultValue = 0.0);
-		};
-
 	public:
-		explicit IniManager(const std::string& filePath);
+		virtual ~IConfigHandler() = default;
 
-		IniManager(const IniManager&) = delete;
-		IniManager& operator=(const IniManager&) = delete;
+		// 纯虚函数：加载/保存文件
+		virtual void Load(const std::string& filePath) = 0;
+		virtual void Save(const std::string& filePath) = 0;
 
-		bool WriteValue(const std::string& section, const std::string& key, const std::string& value);
-		std::string ReadValue(const std::string& section, const std::string& key, const std::string& defaultValue);
+		// 纯虚函数：键值操作
+		virtual void SetValue(const std::string& node, const std::string& key, const std::string& strVal) = 0;
+		virtual std::string GetValue(const std::string& node, const std::string& key, const std::string& defaultVal) = 0;
+	};
 
-		bool WriteInt(const std::string& section, const std::string& key, int value);
-		bool WriteBool(const std::string& section, const std::string& key, bool value);
-		bool WriteDouble(const std::string& section, const std::string& key, double value);
-
-		int ReadInt(const std::string& section, const std::string& key, int defaultValue = 0);
-		bool ReadBool(const std::string& section, const std::string& key, bool defaultValue = false);
-		double ReadDouble(const std::string& section, const std::string& key, double defaultValue = 0.0);
-
-		std::map<std::string, std::string> ReadSection(const std::string& section);
-		bool WriteSection(const std::string& section, const std::map<std::string, std::string>& keyValues);
-
-		bool DeleteKey(const std::string& section, const std::string& key);
-		bool DeleteSection(const std::string& section);
-
-		bool FileExists();
-		bool BackupFile(const std::string& backupPath);
-
-		bool SectionExists(const std::string& section);
-		bool KeyExists(const std::string& section, const std::string& key);
-
-		std::vector<std::string> GetSectionNames();
-		std::vector<std::string> GetKeyNames(const std::string& section);
-
-		std::string GetLastError();
+	// ===================== 2. 具体策略类声明 =====================
+	// 2.1 INI处理器声明
+	class IniConfigHandler : public IConfigHandler
+	{
+	public:
+		void Load(const std::string& filePath) override;
+		void Save(const std::string& filePath) override;
+		void SetValue(const std::string& section, const std::string& key, const std::string& strVal) override;
+		std::string GetValue(const std::string& section, const std::string& key, const std::string& defaultVal) override;
 
 	private:
-		void SetLastError(const std::string& error);
+		// 前向声明：避免头文件引入inicpp.hpp
+		struct inicpp_ini;
+		std::unique_ptr<inicpp_ini> m_ini;
+	};
 
+    // 2.2 JSON处理器声明（预留）
+    class JsonConfigHandler : public IConfigHandler
+    {
+    public:
+        void Load(const std::string& filePath) override;
+        void Save(const std::string& filePath) override;
+        void SetValue(const std::string& node, const std::string& key, const std::string& strVal) override;
+        std::string GetValue(const std::string& node, const std::string& key, const std::string& defaultVal) override;
+
+    private:
+        // 前向声明：避免头文件直接包含 jsoncpp 头
+        struct json_impl;
+        std::unique_ptr<json_impl> m_json;
+    };
+
+	// 2.3 XML处理器声明（预留）
+	class XmlConfigHandler : public IConfigHandler
+	{
+	public:
+		void Load(const std::string& filePath) override;
+		void Save(const std::string& filePath) override;
+		void SetValue(const std::string& node, const std::string& key, const std::string& strVal) override;
+		std::string GetValue(const std::string& node, const std::string& key, const std::string& defaultVal) override;
+
+	private:
+		// 前向声明：避免头文件直接包含 tinyxml2 头
+		struct xml_impl;
+		std::unique_ptr<xml_impl> m_xml;
+	};
+
+	// ===================== 3. 通用值转换工具声明 =====================
+	template <typename T>
+	std::string ConfigValueToString(const T& value);
+
+	// ===================== 4. 通用配置文件封装声明 =====================
+	template <typename HandlerT>
+	class ConfigFile
+	{
+	public:
+		// 嵌套类前置声明
+		class KeyProxy;
+		class NodeProxy;
+
+		explicit ConfigFile(const std::string& filePath);
+
+		// 节点代理类
+		class NodeProxy
+		{
+		public:
+			NodeProxy(ConfigFile& cfg, const std::string& node);
+			KeyProxy operator[](const std::string& key);
+
+		private:
+			ConfigFile& m_cfg;
+			std::string m_node;
+		};
+
+		// 键代理类
+		class KeyProxy
+		{
+		public:
+			KeyProxy(ConfigFile& cfg, const std::string& node, const std::string& key);
+
+			template <typename T>
+			KeyProxy& operator=(const T& value);
+
+		private:
+			ConfigFile& m_cfg;
+			std::string m_node;
+			std::string m_key;
+		};
+
+		// 核心接口
+		NodeProxy operator[](const std::string& node);
+
+		template <typename T>
+		void SetValue(const std::string& node, const std::string& key, const T& value);
+
+		template <typename T>
+		T GetValue(const std::string& node, const std::string& key, const T& defaultVal = T{});
+
+	private:
 		std::string m_filePath;
-		std::string m_lastError;
+		std::unique_ptr<HandlerT> m_handler;
 	};
-#pragma endregion
 
-#pragma region XmlManager
-	class COMMONTOOLS_API XmlManager
+	// ===================== 5. 全局配置管理器声明 =====================
+	class ConfigManager
 	{
 	public:
-		XmlManager();
-		~XmlManager();
-	};
-#pragma endregion
+		static ConfigManager& Instance();
 
-#pragma region JsonManager
-	class COMMONTOOLS_API JsonManager
-	{
-	public:
-		JsonManager();
-		~JsonManager();
+		// 重载[]：自动识别文件格式
+		std::shared_ptr<void> operator[](const std::string& filePath);
+
+		// 清理缓存
+		void ClearCache(const std::string& filePath = "");
+
+		// 禁用拷贝
+		ConfigManager(const ConfigManager&) = delete;
+		ConfigManager& operator=(const ConfigManager&) = delete;
+
+	private:
+		ConfigManager() = default;
+		~ConfigManager() = default;
+
+		// 辅助函数：获取文件后缀
+		std::string GetFileExtension(const std::string& filePath);
+
+		// 缓存容器
+		std::unordered_map<std::string, std::shared_ptr<void>> m_cache;
+		std::mutex m_mutex;
 	};
+
+	// 全局简化调用宏
+	#define CfgFiles ConfigManager::Instance()
 #pragma endregion
 
 #pragma region SQLServerManager
