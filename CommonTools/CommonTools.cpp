@@ -69,7 +69,7 @@ namespace CommonTools
 	{
 		const UnsignedType unsigned_val = static_cast<UnsignedType>(value);
 		UnsignedType val = unsigned_val;
-		int count = 0;
+		auto count = 0;
 		while (val != 0)
 		{
 			val &= val - 1;
@@ -125,9 +125,9 @@ namespace CommonTools
 			return tokens;
 
 		size_t sep_count = std::count_if(str.begin(), str.end(), [&](char c)
-			{
-				return seps.find(c) != std::string::npos;
-			});
+		{
+			return seps.find(c) != std::string::npos;
+		});
 		tokens.reserve((max_split_num > 0 && max_split_num < sep_count + 1) ? max_split_num : sep_count + 1);
 
 		size_t start = 0;
@@ -252,7 +252,7 @@ namespace CommonTools
 		}
 
 		out.clear();
-		int result = 0;
+		auto result = 0;
 		if (len > 0)
 		{
 			const size_t required_size = static_cast<size_t>(len) + 1;
@@ -363,7 +363,7 @@ namespace CommonTools
 		if (str.empty())
 			return str;
 
-		static const char* whitespace = " \t\n\r\v\f";
+		static auto whitespace = " \t\n\r\v\f";
 		const size_t start = str.find_first_not_of(whitespace);
 
 		return (start == std::string::npos) ? std::string() : str.substr(start);
@@ -374,7 +374,7 @@ namespace CommonTools
 		if (str.empty())
 			return str;
 
-		static const char* whitespace = " \t\n\r\v\f";
+		static auto whitespace = " \t\n\r\v\f";
 		const size_t end = str.find_last_not_of(whitespace);
 
 		return (end == std::string::npos) ? std::string() : str.substr(0, end + 1);
@@ -434,8 +434,8 @@ namespace CommonTools
 	TimePoint::TimePoint(std::time_t timestamp)
 	{
 		time_point_ = (timestamp == 0)
-			? std::chrono::system_clock::now()
-			: std::chrono::system_clock::from_time_t(timestamp);
+			              ? std::chrono::system_clock::now()
+			              : std::chrono::system_clock::from_time_t(timestamp);
 	}
 
 	TimePoint::TimePoint(const std::chrono::system_clock::time_point& tp) : time_point_(tp)
@@ -456,12 +456,12 @@ namespace CommonTools
 
 		const auto sec_ts = std::chrono::system_clock::to_time_t(time_point_);
 		const auto ms = static_cast<int>(ToTimeStamp() % 1000);
-		char ms_buf[4] = { 0 };
+		char ms_buf[4] = {0};
 		FormatMs(ms, ms_buf);
 
 		const size_t ms_pos = format.find("%f") != std::string::npos
-			? format.find("%f")
-			: format.find("%F");
+			                      ? format.find("%f")
+			                      : format.find("%F");
 
 		std::tm tm{};
 		if (localtime_s(&tm, &sec_ts) != 0)
@@ -492,7 +492,7 @@ namespace CommonTools
 
 		const auto sec = timestamp / 1000;
 		const auto ms = std::chrono::milliseconds(static_cast<int>(timestamp % 1000));
-		return TimePoint(std::chrono::system_clock::from_time_t(static_cast<std::time_t>(sec)) + ms).ToString(format);
+		return TimePoint(std::chrono::system_clock::from_time_t(sec) + ms).ToString(format);
 	}
 
 	int64_t TimePoint::ToTimestamp(const std::string& timeStr, const std::string& format)
@@ -505,7 +505,7 @@ namespace CommonTools
 		if (ms_pos != std::string::npos)
 			fmt.erase(ms_pos, 2);
 
-		int ms = 0;
+		auto ms = 0;
 		size_t sep = timeStr.size();
 		while (sep > 0 && isdigit(static_cast<unsigned char>(timeStr[sep - 1])))
 			--sep;
@@ -561,7 +561,7 @@ namespace CommonTools
 		if (!Exists(path))
 			return false;
 
-		struct stat info {};
+		struct stat info{};
 		if (stat(path.c_str(), &info) != 0)
 			return false;
 
@@ -627,7 +627,7 @@ namespace CommonTools
 
 #ifdef _WIN32
 		WIN32_FILE_ATTRIBUTE_DATA fileData{};
-		if (::GetFileAttributesExA(path.c_str(), GetFileExInfoStandard, &fileData) != FALSE)
+		if (GetFileAttributesExA(path.c_str(), GetFileExInfoStandard, &fileData) != FALSE)
 		{
 			const uint64_t file_size_64 =
 				(static_cast<uint64_t>(fileData.nFileSizeHigh) << 32) +
@@ -636,15 +636,13 @@ namespace CommonTools
 			if (file_size_64 > SIZE_MAX)
 				return SIZE_MAX;
 
-			return static_cast<size_t>(file_size_64);
+			return file_size_64;
 		}
 #endif
 
 		std::ifstream file_stream(path, std::ios::binary | std::ios::ate);
 		if (!file_stream.is_open())
-		{
 			return 0;
-		}
 
 		file_stream.sync_with_stdio(false);
 
@@ -652,11 +650,11 @@ namespace CommonTools
 		if (pos == std::streampos(-1))
 			return 0;
 
-		const uint64_t file_size_64 = static_cast<uint64_t>(pos);
+		const auto file_size_64 = pos;
 		if (file_size_64 > SIZE_MAX)
 			return SIZE_MAX;
 
-		return static_cast<size_t>(file_size_64);
+		return file_size_64;
 	}
 
 	std::time_t FileSystem::GetFileCreateTime(const std::string& path)
@@ -665,7 +663,7 @@ namespace CommonTools
 			return 0;
 
 #ifdef _WIN32
-		HANDLE hFile = ::CreateFileA(
+		HANDLE hFile = CreateFileA(
 			path.c_str(),
 			GENERIC_READ,
 			FILE_SHARE_READ,
@@ -679,18 +677,18 @@ namespace CommonTools
 			return 0;
 
 		FILETIME createTime{};
-		if (!::GetFileTime(hFile, &createTime, nullptr, nullptr))
+		if (!GetFileTime(hFile, &createTime, nullptr, nullptr))
 		{
-			::CloseHandle(hFile);
+			CloseHandle(hFile);
 			return 0;
 		}
 
-		::CloseHandle(hFile);
+		CloseHandle(hFile);
 
 		FILETIME localTime{};
-		::FileTimeToLocalFileTime(&createTime, &localTime);
+		FileTimeToLocalFileTime(&createTime, &localTime);
 		SYSTEMTIME sysTime{};
-		::FileTimeToSystemTime(&localTime, &sysTime);
+		FileTimeToSystemTime(&localTime, &sysTime);
 
 		std::tm tm{};
 		tm.tm_year = sysTime.wYear - 1900;
@@ -702,7 +700,7 @@ namespace CommonTools
 
 		return mktime(&tm);
 #else
-		struct stat info {};
+		struct stat info{};
 		if (stat(path.c_str(), &info) != 0)
 			return 0;
 		return info.st_ctime;
@@ -715,7 +713,7 @@ namespace CommonTools
 			return 0;
 
 #ifdef _WIN32
-		HANDLE hFile = ::CreateFileA(
+		HANDLE hFile = CreateFileA(
 			path.c_str(),
 			GENERIC_READ,
 			FILE_SHARE_READ,
@@ -729,18 +727,18 @@ namespace CommonTools
 			return 0;
 
 		FILETIME modifyTime{};
-		if (!::GetFileTime(hFile, nullptr, nullptr, &modifyTime))
+		if (!GetFileTime(hFile, nullptr, nullptr, &modifyTime))
 		{
-			::CloseHandle(hFile);
+			CloseHandle(hFile);
 			return 0;
 		}
 
-		::CloseHandle(hFile);
+		CloseHandle(hFile);
 
 		FILETIME localTime{};
-		::FileTimeToLocalFileTime(&modifyTime, &localTime);
+		FileTimeToLocalFileTime(&modifyTime, &localTime);
 		SYSTEMTIME sysTime{};
-		::FileTimeToSystemTime(&localTime, &sysTime);
+		FileTimeToSystemTime(&localTime, &sysTime);
 
 		std::tm tm{};
 		tm.tm_year = sysTime.wYear - 1900;
@@ -752,7 +750,7 @@ namespace CommonTools
 
 		return mktime(&tm);
 #else
-		struct stat info {};
+		struct stat info{};
 		if (stat(path.c_str(), &info) != 0)
 			return 0;
 		return info.st_mtime;
@@ -765,8 +763,8 @@ namespace CommonTools
 			return "";
 
 #ifdef _WIN32
-		char fileName[MAX_PATH] = { 0 };
-		const char* p = ::PathFindFileNameA(path.c_str());
+		char fileName[MAX_PATH] = {0};
+		const char* p = PathFindFileNameA(path.c_str());
 		if (p)
 			strcpy_s(fileName, MAX_PATH, p);
 		return std::string(fileName);
@@ -784,8 +782,8 @@ namespace CommonTools
 			return "";
 
 #ifdef _WIN32
-		char ext[MAX_PATH] = { 0 };
-		const char* p = ::PathFindFileNameA(path.c_str());
+		char ext[MAX_PATH] = {0};
+		const char* p = PathFindFileNameA(path.c_str());
 		if (p)
 			strcpy_s(ext, MAX_PATH, p);
 		std::string extension(ext);
@@ -806,9 +804,9 @@ namespace CommonTools
 			return "";
 
 #ifdef _WIN32
-		char dir[MAX_PATH] = { 0 };
-		::strcpy_s(dir, path.c_str());
-		::PathRemoveFileSpecA(dir);
+		char dir[MAX_PATH] = {0};
+		strcpy_s(dir, path.c_str());
+		PathRemoveFileSpecA(dir);
 		return std::string(dir);
 #else
 		size_t pos = path.find_last_of("/");
@@ -830,7 +828,7 @@ namespace CommonTools
 			searchPath = path + "\\*." + extension;
 
 		WIN32_FIND_DATAA findData{};
-		HANDLE hFind = ::FindFirstFileA(searchPath.c_str(), &findData);
+		HANDLE hFind = FindFirstFileA(searchPath.c_str(), &findData);
 		if (hFind == INVALID_HANDLE_VALUE)
 			return files;
 
@@ -840,9 +838,10 @@ namespace CommonTools
 				continue;
 
 			files.push_back(std::string(findData.cFileName));
-		} while (::FindNextFileA(hFind, &findData));
+		}
+		while (FindNextFileA(hFind, &findData));
 
-		::FindClose(hFind);
+		FindClose(hFind);
 #else
 		// Linux/macOS 实现（简化版）
 		DIR* dir = opendir(path.c_str());
@@ -878,10 +877,10 @@ namespace CommonTools
 			return false;
 
 #ifdef _WIN32
-		DWORD attr = ::GetFileAttributesA(path.c_str());
+		DWORD attr = GetFileAttributesA(path.c_str());
 		return (attr != INVALID_FILE_ATTRIBUTES) && (attr & FILE_ATTRIBUTE_DIRECTORY);
 #else
-		struct stat info {};
+		struct stat info{};
 		if (stat(path.c_str(), &info) != 0)
 			return false;
 		return (info.st_mode & S_IFMT) == S_IFDIR;
@@ -894,7 +893,7 @@ namespace CommonTools
 			return IsDirectory(path);
 
 #ifdef _WIN32
-		return ::CreateDirectoryA(path.c_str(), nullptr) != 0 || GetLastError() == ERROR_ALREADY_EXISTS;
+		return CreateDirectoryA(path.c_str(), nullptr) != 0 || GetLastError() == ERROR_ALREADY_EXISTS;
 #else
 		return ::mkdir(path.c_str(), 0755) == 0 || errno == EEXIST;
 #endif
@@ -908,7 +907,7 @@ namespace CommonTools
 #ifdef _WIN32
 		std::string searchPath = path + "\\*";
 		WIN32_FIND_DATAA findData{};
-		HANDLE hFind = ::FindFirstFileA(searchPath.c_str(), &findData);
+		HANDLE hFind = FindFirstFileA(searchPath.c_str(), &findData);
 
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
@@ -923,7 +922,7 @@ namespace CommonTools
 				{
 					if (!DeleteDirectorys(fullPath))
 					{
-						::FindClose(hFind);
+						FindClose(hFind);
 						return false;
 					}
 				}
@@ -931,16 +930,17 @@ namespace CommonTools
 				{
 					if (!DeleteFileX(fullPath))
 					{
-						::FindClose(hFind);
+						FindClose(hFind);
 						return false;
 					}
 				}
-			} while (::FindNextFileA(hFind, &findData));
+			}
+			while (FindNextFileA(hFind, &findData));
 
-			::FindClose(hFind);
+			FindClose(hFind);
 		}
 
-		return ::RemoveDirectoryA(path.c_str()) != 0;
+		return RemoveDirectoryA(path.c_str()) != 0;
 #else
 		DIR* dir = opendir(path.c_str());
 		if (!dir)
@@ -986,7 +986,7 @@ namespace CommonTools
 #ifdef _WIN32
 		std::string searchPath = path + "\\*";
 		WIN32_FIND_DATAA findData{};
-		HANDLE hFind = ::FindFirstFileA(searchPath.c_str(), &findData);
+		HANDLE hFind = FindFirstFileA(searchPath.c_str(), &findData);
 
 		if (hFind == INVALID_HANDLE_VALUE)
 			return dirs;
@@ -1001,9 +1001,10 @@ namespace CommonTools
 				continue;
 
 			dirs.push_back(dirName);
-		} while (::FindNextFileA(hFind, &findData));
+		}
+		while (FindNextFileA(hFind, &findData));
 
-		::FindClose(hFind);
+		FindClose(hFind);
 #else
 		DIR* dir = opendir(path.c_str());
 		if (!dir)
@@ -1031,11 +1032,11 @@ namespace CommonTools
 	std::string FileSystem::GetCurrentWorkDirectory()
 	{
 #ifdef _WIN32
-		char buf[MAX_PATH] = { 0 };
-		::GetCurrentDirectoryA(MAX_PATH, buf);
+		char buf[MAX_PATH] = {0};
+		GetCurrentDirectoryA(MAX_PATH, buf);
 		return std::string(buf);
 #else
-		char buf[PATH_MAX] = { 0 };
+		char buf[PATH_MAX] = {0};
 		if (::getcwd(buf, sizeof(buf)) == nullptr)
 			return ".";
 		return std::string(buf);
@@ -1048,7 +1049,7 @@ namespace CommonTools
 			return false;
 
 #ifdef _WIN32
-		return ::SetCurrentDirectoryA(path.c_str()) != 0;
+		return SetCurrentDirectoryA(path.c_str()) != 0;
 #else
 		return ::chdir(path.c_str()) == 0;
 #endif
@@ -1064,7 +1065,7 @@ namespace CommonTools
 			return "";
 
 		file.seekg(0, std::ios::end);
-		size_t size = static_cast<size_t>(file.tellg());
+		auto size = file.tellg();
 		file.seekg(0, std::ios::beg);
 
 		std::string content;
@@ -1085,456 +1086,615 @@ namespace CommonTools
 	}
 #pragma endregion
 
-#pragma region ConfigFileManager
-	// ===================== 1. INI处理器实现 =====================
-	// 定义inicpp_ini结构体（封装inicpp::ini）
-	struct IniConfigHandler::inicpp_ini
-	{
-		inicpp::IniManager impl;
-		inicpp_ini() = default;
-		explicit inicpp_ini(const std::string& filePath) : impl(filePath) {}
-	};
+#pragma region CustomSettings
 
-	// IniConfigHandler实现
-	void IniConfigHandler::Load(const std::string& filePath)
+	class CSImpl
 	{
-		m_ini = std::make_unique<inicpp_ini>(filePath);
-	}
+	public:
+		Json::Value m_jsonRoot;
+		std::string m_basePath;
+		std::string m_lastError;
 
-	void IniConfigHandler::Save(const std::string& filePath)
-	{
-		if (!m_ini) return;
-		if (!filePath.empty())
+		CRITICAL_SECTION m_cs;
+		CRITICAL_SECTION m_csLoadFile;
+		CRITICAL_SECTION m_csSaveFile;
+
+		CSImpl() : m_basePath("d:/param/custom_settings/")
 		{
-			m_ini->impl.setFileName(filePath);
-		}
-		// inicpp::IniManager writes changes on SetValue via IniManager::set, so nothing else to do here.
-	}
+			m_lastError = "";
 
-	void IniConfigHandler::SetValue(const std::string& section, const std::string& key, const std::string& strVal)
-	{
-		// Use IniManager::set which writes changes to the INI file
-		m_ini->impl.set(section, key, strVal);
-	}
+			std::string path(m_basePath);
+			std::replace(path.begin(), path.end(), '/', '\\');
+			CreateDirectory(path.c_str(), nullptr);
 
-	std::string IniConfigHandler::GetValue(const std::string& section, const std::string& key, const std::string& defaultVal)
-	{
-		if (!m_ini) return defaultVal;
-		if (!m_ini->impl.isSectionExists(section)) return defaultVal;
-		std::string v = m_ini->impl[section].toString(key);
-		return v.empty() ? defaultVal : v;
-	}
-
-	// ===================== 2. JSON/XML处理器实现（预留） =====================
-	// JSON handler implementation using jsoncpp (json/json.h)
-	struct JsonConfigHandler::json_impl
-	{
-		Json::Value root;
-		std::string filePath;
-		Json::StreamWriterBuilder writerBuilder;
-
-		json_impl()
-		{
-			writerBuilder["enable_escaping_for_non_ascii"] = false;
-			writerBuilder["emitUTF8"] = true;
-		}
-	};
-
-	void JsonConfigHandler::Load(const std::string& filePath)
-	{
-		m_json = std::make_unique<json_impl>();
-		m_json->filePath = filePath;
-
-		if (filePath.empty())
-			return;
-
-		std::ifstream ifs(filePath, std::ios::in | std::ios::binary);
-		if (!ifs.is_open())
-		{
-			// leave empty root
-			return;
+			InitializeCriticalSection(&m_cs);
+			InitializeCriticalSection(&m_csLoadFile);
+			InitializeCriticalSection(&m_csSaveFile);
+			LoadJsonFiles();
 		}
 
-		Json::Reader reader;
-		Json::Value root;
-		if (!reader.parse(ifs, root))
+		~CSImpl()
 		{
-			// parse failed -> keep empty
+			SaveJsonFiles();
+			DeleteCriticalSection(&m_cs);
+			DeleteCriticalSection(&m_csLoadFile);
+			DeleteCriticalSection(&m_csSaveFile);
+		}
+
+		static std::string EnsureTrailingSlash(const std::string& path)
+		{
+			if (!path.empty() && (path[path.size() - 1] != '\\' && path[path.size() - 1] != '/'))
+				return path + "/";
+			return path;
+		}
+
+		void EnsureNodeExists(const std::string& fileName, const std::string& section, const std::string& key)
+		{
+			if (fileName.empty() || section.empty() || key.empty()) return; // 避免处理空字符串的情况
+			if (!m_jsonRoot.isMember(fileName)) m_jsonRoot[fileName] = Json::Value(Json::objectValue);
+			if (!m_jsonRoot[fileName].isMember(section)) m_jsonRoot[fileName][section] = Json::Value(Json::objectValue);
+			if (!m_jsonRoot[fileName][section].isMember(key))
+			{
+				m_jsonRoot[fileName][section][key] = Json::Value(
+					Json::objectValue);
+			}
+			if (!m_jsonRoot[fileName][section][key].isMember("value"))
+			{
+				m_jsonRoot[fileName][section][key]["value"] =
+					Json::Value(Json::nullValue);
+			}
+			if (!m_jsonRoot[fileName][section][key].isMember("description"))
+			{
+				m_jsonRoot[fileName][section][key][
+					"description"] = "";
+			}
+		}
+
+		bool LoadJsonFile(const std::string& fileName)
+		{
+			CSLocker locker(m_csLoadFile);
+
+			m_lastError = "";
+			std::string filePath = m_basePath + fileName;
+			std::ifstream ifs(filePath, std::ios::in | std::ios::binary);
+
+			if (!ifs.is_open())
+			{
+				m_lastError = "加载文件失败: " + filePath;
+				return false;
+			}
+
+			Json::Reader reader;
+			Json::Value jsonData;
+			if (!reader.parse(ifs, jsonData))
+			{
+				m_lastError = "JSON解析失败: " + reader.getFormattedErrorMessages();
+				ifs.close();
+				return false;
+			}
+
+			m_jsonRoot[fileName] = jsonData;
 			ifs.close();
-			return;
+			m_lastError = "加载文件成功: " + fileName;
+			return true;
 		}
-		m_json->root = std::move(root);
-		ifs.close();
-	}
 
-	void JsonConfigHandler::Save(const std::string& filePath)
-	{
-		if (!m_json) m_json = std::make_unique<json_impl>();
-		if (!filePath.empty()) m_json->filePath = filePath;
-		if (m_json->filePath.empty()) return; // no target file
-
-		std::ofstream ofs(m_json->filePath, std::ios::out | std::ios::binary | std::ios::trunc);
-		if (!ofs.is_open()) return;
-
-		std::string str = Json::writeString(m_json->writerBuilder, m_json->root);
-		ofs << str;
-		ofs.close();
-	}
-
-	static Json::Value* navigate_create(Json::Value& root, const std::string& node)
-	{
-		if (node.empty()) return &root;
-		std::vector<std::string> parts;
+		bool SaveJsonFile(const std::string& fileName, const bool& isNewFile = false)
 		{
-			std::stringstream ss(node);
-			std::string item;
-			while (std::getline(ss, item, '/'))
+			CSLocker locker(m_csSaveFile);
+
+			m_lastError = "";
+			std::string filePath = m_basePath + fileName;
+
+			if (isNewFile)
 			{
-				if (!item.empty()) parts.push_back(item);
+				DWORD attrib = GetFileAttributesA(filePath.c_str());
+				bool exist = (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
+				if (!exist && !m_jsonRoot.isMember(fileName))
+				{
+					std::ofstream ofs(filePath, std::ios::out | std::ios::binary);
+					if (!ofs.is_open())
+					{
+						m_lastError = "创建新文件失败: " + filePath;
+						return false;
+					}
+
+					Json::Value newObj(Json::objectValue);
+					Json::StreamWriterBuilder writerBuilder;
+					writerBuilder["enable_escaping_for_non_ascii"] = false; // 禁用非ASCII字符转义
+					writerBuilder["emitUTF8"] = true;
+
+					//Json::StyledWriter writer;
+					//ofs << writer.write(newObj);
+					//ofs.close();
+					std::string strJson = Json::writeString(writerBuilder, newObj);
+					ofs << strJson;
+					ofs.close();
+
+					m_jsonRoot[fileName] = newObj;
+
+					m_lastError = "创建新文件成功: " + fileName;
+				}
+				else
+				{
+					m_lastError = "文件已存在: " + fileName;
+					return false;
+				}
 			}
-		}
-		Json::Value* cur = &root;
-		for (const auto& p : parts)
-		{
-			if (!cur->isObject()) *cur = Json::Value(Json::objectValue);
-			if (!cur->isMember(p)) (*cur)[p] = Json::Value(Json::objectValue);
-			cur = &(*cur)[p];
-		}
-		return cur;
-	}
-
-	void JsonConfigHandler::SetValue(const std::string& node, const std::string& key, const std::string& strVal)
-	{
-		if (!m_json) m_json = std::make_unique<json_impl>();
-		Json::Value* target = navigate_create(m_json->root, node);
-		if (!target) return;
-		(*target)[key] = strVal;
-		// persist
-		Save("");
-	}
-
-	static std::string value_to_string(const Json::Value& v)
-	{
-		if (v.isString()) return v.asString();
-		if (v.isBool()) return v.asBool() ? "true" : "false";
-		if (v.isInt() || v.isUInt() || v.isInt64() || v.isUInt64()) return std::to_string(v.asInt64());
-		if (v.isDouble())
-		{
-			std::ostringstream ss;
-			ss << v.asDouble();
-			return ss.str();
-		}
-		return "";
-	}
-
-	std::string JsonConfigHandler::GetValue(const std::string& node, const std::string& key, const std::string& defaultVal)
-	{
-		if (!m_json) return defaultVal;
-		Json::Value* cur = &m_json->root;
-		if (!node.empty())
-		{
-			std::stringstream ss(node);
-			std::string part;
-			while (std::getline(ss, part, '/'))
+			else
 			{
-				if (part.empty()) continue;
-				if (!cur->isMember(part)) return defaultVal;
-				cur = &(*cur)[part];
+				if (m_jsonRoot.isMember(fileName))
+				{
+					std::ofstream ofs(filePath);
+					if (!ofs.is_open())
+					{
+						m_lastError = "保存文件失败: " + filePath;
+						return false;
+					}
+
+					Json::StreamWriterBuilder writerBuilder;
+					writerBuilder["enable_escaping_for_non_ascii"] = false; // 禁用非ASCII字符转义
+					writerBuilder["emitUTF8"] = true;
+
+					//Json::StyledWriter writer;
+					//ofs << writer.write(m_jsonRoot[fileName]);
+					//ofs.close();
+					std::string strJson = Json::writeString(writerBuilder, m_jsonRoot[fileName]);
+					ofs << strJson;
+					ofs.close();
+
+					m_lastError = "保存文件成功: " + fileName;
+				}
+				else
+				{
+					m_lastError = "文件不存在: " + fileName;
+					return false;
+				}
 			}
+
+			return true;
 		}
-		if (!cur->isMember(key)) return defaultVal;
-		const Json::Value& v = (*cur)[key];
-		std::string s = value_to_string(v);
-		return s.empty() ? defaultVal : s;
-	}
 
-// XML handler implementation using tinyxml2
-struct XmlConfigHandler::xml_impl
-{
-    tinyxml2::XMLDocument doc;
-    std::string filePath;
-};
-
-static tinyxml2::XMLElement* xml_navigate_create(tinyxml2::XMLDocument& doc, const std::string& node)
-{
-    if (node.empty())
-    {
-        // ensure root exists
-        if (!doc.RootElement())
-            return doc.NewElement("root");
-        return doc.RootElement();
-    }
-
-    // Ensure document has root
-    if (!doc.RootElement())
-    {
-        tinyxml2::XMLElement* newRoot = doc.NewElement("root");
-        doc.InsertFirstChild(newRoot);
-    }
-
-    tinyxml2::XMLElement* cur = doc.RootElement();
-    std::stringstream ss(node);
-    std::string part;
-    while (std::getline(ss, part, '/'))
-    {
-        if (part.empty()) continue;
-        tinyxml2::XMLElement* child = cur->FirstChildElement(part.c_str());
-        if (!child)
-        {
-            child = doc.NewElement(part.c_str());
-            cur->InsertEndChild(child);
-        }
-        cur = child;
-    }
-    return cur;
-}
-
-void XmlConfigHandler::Load(const std::string& filePath)
-{
-    m_xml = std::make_unique<xml_impl>();
-    m_xml->filePath = filePath;
-    if (filePath.empty()) return;
-    tinyxml2::XMLError e = m_xml->doc.LoadFile(filePath.c_str());
-    if (e != tinyxml2::XML_SUCCESS)
-    {
-        // leave empty document
-        m_xml->doc.Clear();
-    }
-}
-
-void XmlConfigHandler::Save(const std::string& filePath)
-{
-    if (!m_xml) m_xml = std::make_unique<xml_impl>();
-    if (!filePath.empty()) m_xml->filePath = filePath;
-    if (m_xml->filePath.empty()) return;
-    m_xml->doc.SaveFile(m_xml->filePath.c_str());
-}
-
-void XmlConfigHandler::SetValue(const std::string& node, const std::string& key, const std::string& strVal)
-{
-    if (!m_xml) m_xml = std::make_unique<xml_impl>();
-    tinyxml2::XMLElement* target = xml_navigate_create(m_xml->doc, node);
-    if (!target)
-    {
-        // nothing
-        return;
-    }
-    // If target is not attached to doc (possible when doc had no root and xml_navigate_create returned new element), ensure it's inserted
-    if (!target->Parent())
-    {
-        if (!m_xml->doc.RootElement())
-            m_xml->doc.InsertEndChild(target);
-        else
-            m_xml->doc.RootElement()->InsertEndChild(target);
-    }
-
-    tinyxml2::XMLElement* child = target->FirstChildElement(key.c_str());
-    if (!child)
-    {
-        child = m_xml->doc.NewElement(key.c_str());
-        target->InsertEndChild(child);
-    }
-    // set text
-    child->SetText(strVal.c_str());
-    // persist
-    Save("");
-}
-
-std::string XmlConfigHandler::GetValue(const std::string& node, const std::string& key, const std::string& defaultVal)
-{
-    if (!m_xml) return defaultVal;
-    tinyxml2::XMLElement* cur = m_xml->doc.RootElement();
-    if (!node.empty())
-    {
-        std::stringstream ss(node);
-        std::string part;
-        while (std::getline(ss, part, '/'))
-        {
-            if (part.empty()) continue;
-            if (!cur) return defaultVal;
-            cur = cur->FirstChildElement(part.c_str());
-        }
-    }
-    if (!cur) return defaultVal;
-    tinyxml2::XMLElement* child = cur->FirstChildElement(key.c_str());
-    if (!child) return defaultVal;
-    const char* txt = child->GetText();
-    return txt ? std::string(txt) : defaultVal;
-}
-
-	// ===================== 3. 通用值转换工具实现 =====================
-	template <typename T>
-	std::string ConfigValueToString(const T& value)
-	{
-		if constexpr (std::is_same_v<T, std::string>)
-			return value;
-		else if constexpr (std::is_same_v<T, bool>)
-			return value ? "true" : "false";
-		else if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>)
-			return std::to_string(value);
-		else if constexpr (std::is_floating_point_v<T>)
+		bool DeleteJsonFile(const std::string& fileName)
 		{
-			std::string str = std::to_string(value);
-			str.erase(str.find_last_not_of('0') + 1, std::string::npos);
-			if (str.back() == '.') str.pop_back();
-			return str;
+			CSLocker locker(m_cs);
+
+			m_lastError = "";
+			std::string filePath = m_basePath + fileName;
+			if (std::remove(filePath.c_str()) != 0)
+			{
+				m_lastError = "删除文件失败: " + filePath;
+				return false;
+			}
+			m_jsonRoot.removeMember(fileName);
+			m_lastError = "删除文件成功: " + fileName;
+			return true;
 		}
-		else
-			throw std::invalid_argument("Unsupported value type");
+
+		bool RenameJsonFile(const std::string& oldFileName, const std::string& newFileName)
+		{
+			CSLocker locker(m_cs);
+
+			m_lastError = "";
+			std::string oldPath = m_basePath + oldFileName;
+			std::string newPath = m_basePath + newFileName;
+
+			if (std::rename(oldPath.c_str(), newPath.c_str()) != 0)
+			{
+				m_lastError = "重命名文件失败: " + oldFileName + " -> " + newFileName;
+				return false;
+			}
+
+			// 更新内存中的文件信息
+			if (m_jsonRoot.isMember(oldFileName))
+			{
+				m_jsonRoot[newFileName] = m_jsonRoot[oldFileName];
+				m_jsonRoot.removeMember(oldFileName);
+			}
+			m_lastError = "重命名文件成功: " + oldFileName + " -> " + newFileName;
+			return true;
+		}
+
+		bool LoadJsonFiles()
+		{
+			CSLocker locker(m_cs);
+
+			m_lastError = "";
+			WIN32_FIND_DATAA findData;
+			std::string searchPath = m_basePath + "*.json";
+			HANDLE hFind = FindFirstFileA(searchPath.c_str(), &findData);
+
+			if (hFind == INVALID_HANDLE_VALUE)
+			{
+				m_lastError = "未找到JSON文件: " + searchPath;
+				return false;
+			}
+
+			do
+			{
+				if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+				{
+					std::string fileName = findData.cFileName;
+					LoadJsonFile(fileName);
+				}
+			}
+			while (FindNextFileA(hFind, &findData) != 0);
+
+			DWORD lastError = GetLastError();
+			if (lastError != ERROR_NO_MORE_FILES)
+				m_lastError = "读取文件失败";
+			else
+				m_lastError = "成功加载所有JSON文件";
+			FindClose(hFind);
+			return true;
+		}
+
+		bool SaveJsonFiles()
+		{
+			CSLocker locker(m_cs);
+
+			m_lastError = "";
+			auto failCount = 0;
+			Json::Value::Members members = m_jsonRoot.getMemberNames();
+			for (size_t i = 0; i < members.size(); ++i)
+			{
+				std::string member = members[i];
+				size_t pos = member.rfind('.');
+				if (pos == std::string::npos)
+					continue;
+
+				std::string suffix = member.substr(pos);
+				for (size_t i = 0; i < suffix.size(); i++)
+					suffix[i] = tolower(suffix[i]);
+				if (suffix.compare(".json") != 0)
+					continue;
+
+				if (!SaveJsonFile(member))
+					failCount++;
+			}
+
+			if (failCount == 0)
+			{
+				m_lastError = "所有文件保存成功";
+				return true;
+			}
+			m_lastError = "部分文件保存失败";
+			return false;
+		}
+
+		bool JsonToVector(const std::string& fileName, std::vector<CustomSettings::Members>& currentFileData)
+		{
+			CSLocker locker(m_cs);
+
+			m_lastError = "";
+			currentFileData.clear();
+
+			if (fileName.empty())
+			{
+				m_lastError = "文件名为空";
+				return false;
+			}
+
+			if (!m_jsonRoot.isObject())
+			{
+				m_lastError = "JSON根节点不是对象";
+				return false;
+			}
+
+			const Json::Value& fileData = m_jsonRoot[fileName];
+			if (!fileData.isObject())
+			{
+				m_lastError = "文件数据不是对象: " + fileName;
+				return false;
+			}
+
+			Json::Value::Members sections = fileData.getMemberNames();
+			for (size_t i = 0; i < sections.size(); ++i)
+			{
+				std::string section = sections[i];
+				const Json::Value& secObj = fileData[section];
+				if (!secObj.isObject()) continue;
+
+				Json::Value::Members keys = secObj.getMemberNames();
+				for (size_t j = 0; j < keys.size(); ++j)
+				{
+					std::string key = keys[j];
+					const Json::Value& keyObj = secObj[key];
+					if (!keyObj.isObject()) continue;
+
+					CustomSettings::Members item;
+					item.fileName = StringUtils::U2G(fileName);
+					item.section = StringUtils::U2G(section);
+					item.key = StringUtils::U2G(key);
+					item.description = keyObj.isMember("description")
+						                   ? StringUtils::U2G(keyObj["description"].asString())
+						                   : StringUtils::U2G("");
+
+					const Json::Value& val = keyObj["value"];
+
+					if (val.isDouble())
+					{
+						std::ostringstream ss;
+						ss.precision(3);
+						ss << std::fixed << val.asDouble();
+						item.value = StringUtils::U2G(ss.str());
+					}
+					else
+						item.value = StringUtils::U2G(val.asString());
+
+					currentFileData.push_back(item);
+				}
+			}
+
+			m_lastError = "JSON转Vector成功: " + fileName;
+			return true;
+		}
+
+		bool VectorToJson(const std::string& fileName, const std::vector<CustomSettings::Members>& currentFileData)
+		{
+			CSLocker locker(m_cs);
+
+			m_lastError = "";
+			m_jsonRoot.removeMember(fileName);
+			m_jsonRoot[fileName] = Json::Value(Json::objectValue);
+			for (size_t i = 0; i < currentFileData.size(); ++i)
+			{
+				const CustomSettings::Members& member = currentFileData[i];
+
+				CustomSettings::Members item;
+				item.fileName = StringUtils::G2U(member.fileName);
+				item.section = StringUtils::G2U(member.section);
+				item.key = StringUtils::G2U(member.key);
+				item.description = StringUtils::G2U(member.description);
+				item.value = StringUtils::G2U(member.value);
+
+				Json::Value& keyObj = m_jsonRoot[item.fileName][item.section][item.key];
+
+				keyObj["description"] = item.description;
+
+				// 直接根据值的类型设置
+				if (item.value == "true" || item.value == "false")
+					keyObj["value"] = (item.value == "true");
+				else if (std::all_of(item.value.begin(), item.value.end(), isdigit) || (item.value.size() > 1 && item.
+					value[0] == '-' && std::all_of(item.value.begin() + 1, item.value.end(), isdigit)))
+					keyObj["value"] = atoi(item.value.c_str());
+				else if (item.value.find('.') != std::string::npos)
+					keyObj["value"] = atof(item.value.c_str());
+				else
+					keyObj["value"] = item.value;
+			}
+
+			m_lastError = "Vector转JSON成功: " + fileName;
+			return true;
+		}
+
+		bool RemoveJsonObject(const std::string& objectPath)
+		{
+			std::vector<std::string> objects = StringUtils::Split(objectPath, '/', 3);
+			if (objects.size() < 3)
+				return false;
+
+			CustomSettings::Members member;
+			member.fileName = objects.at(0);
+			member.section = objects.at(1);
+			member.key = objects.at(2);
+
+			if (member.key.length() > 0)
+				m_jsonRoot[member.fileName][member.section].removeMember(member.key);
+			else if (member.section.length() > 0)
+				m_jsonRoot[member.fileName].removeMember(member.section);
+			else if (member.fileName.length() > 0)
+				m_jsonRoot.removeMember(member.fileName);
+			return true;
+		}
+
+		std::vector<std::string> GetJsonFileList()
+		{
+			CSLocker locker(m_cs);
+
+			m_lastError = "";
+			return m_jsonRoot.getMemberNames();
+		}
+
+		std::string JsonToString()
+		{
+			CSLocker locker(m_cs);
+
+			m_lastError = "";
+			return m_jsonRoot.toStyledString();
+		}
+
+		std::string GetLastErrorMsg() const
+		{
+			CSLocker locker(const_cast<CRITICAL_SECTION&>(m_cs));
+			return m_lastError;
+		}
+	};
+
+
+	// -------------------------- CSKey 实现 --------------------------
+	void GetJsonValue(int& out, Json::Value& jsonValue) { out = jsonValue.asInt(); }
+	void GetJsonValue(bool& out, Json::Value& jsonValue) { out = jsonValue.asBool(); }
+	void GetJsonValue(double& out, Json::Value& jsonValue) { out = jsonValue.asDouble(); }
+	void GetJsonValue(std::string& out, Json::Value& jsonValue) { out = jsonValue.asString(); }
+
+	CSKey::CSKey(CSImpl* impl, const std::string& fileName, const std::string& section, const std::string& key)
+		: m_impl(impl),
+		  m_fileName(StringUtils::ToLower(fileName)),
+		  m_section(StringUtils::ToLower(section)),
+		  m_key(StringUtils::ToLower(key))
+	{
+		if (!key.empty())
+			m_impl->EnsureNodeExists(m_fileName, m_section, m_key);
 	}
 
-	// 显式实例化常用类型（避免链接错误）
-	template std::string ConfigValueToString(const std::string&);
-	template std::string ConfigValueToString(const bool&);
-	template std::string ConfigValueToString(const int&);
-	template std::string ConfigValueToString(const double&);
-	template std::string ConfigValueToString(const float&);
-	template std::string ConfigValueToString(const long long&);
-
-	// ===================== 4. ConfigFile实现 =====================
-	// ConfigFile构造函数
-	template <typename HandlerT>
-	ConfigFile<HandlerT>::ConfigFile(const std::string& filePath) : m_filePath(filePath)
-	{
-		m_handler = std::make_unique<HandlerT>();
-		m_handler->Load(filePath);
-	}
-
-	// NodeProxy构造函数
-	template <typename HandlerT>
-	ConfigFile<HandlerT>::NodeProxy::NodeProxy(ConfigFile& cfg, const std::string& node)
-		: m_cfg(cfg), m_node(node)
+	CSKey::CSKey(CSImpl* impl, const std::string& fileName, const std::string& section)
+		: CSKey(impl, fileName, section, "")
 	{
 	}
 
-	// NodeProxy::operator[]
-	template <typename HandlerT>
-	typename ConfigFile<HandlerT>::KeyProxy ConfigFile<HandlerT>::NodeProxy::operator[](const std::string& key)
+	CSKey CSKey::operator[](const std::string& key)
 	{
-		return KeyProxy(m_cfg, m_node, key);
-	}
-
-	// KeyProxy构造函数
-	template <typename HandlerT>
-	ConfigFile<HandlerT>::KeyProxy::KeyProxy(ConfigFile& cfg, const std::string& node, const std::string& key)
-		: m_cfg(cfg), m_node(node), m_key(key)
-	{
-	}
-
-	// KeyProxy::operator=
-	template <typename HandlerT>
-	template <typename T>
-	typename ConfigFile<HandlerT>::KeyProxy& ConfigFile<HandlerT>::KeyProxy::operator=(const T& value)
-	{
-		m_cfg.SetValue(m_node, m_key, value);
+		std::string lowerKey = StringUtils::ToLower(key);
+		if (lowerKey != "value" && lowerKey != "description")
+		{
+			m_key = lowerKey;
+			m_impl->EnsureNodeExists(m_fileName, m_section, m_key);
+		}
 		return *this;
 	}
 
-	// ConfigFile::operator[]
-	template <typename HandlerT>
-	typename ConfigFile<HandlerT>::NodeProxy ConfigFile<HandlerT>::operator[](const std::string& node)
+	CSKey& CSKey::operator=(const int& value)
 	{
-		return NodeProxy(*this, node);
+		CSLocker locker(m_impl->m_cs);
+		m_impl->m_jsonRoot[m_fileName][m_section][m_key] = value;
+		return *this;
 	}
 
-	// ConfigFile::SetValue
-	template <typename HandlerT>
-	template <typename T>
-	void ConfigFile<HandlerT>::SetValue(const std::string& node, const std::string& key, const T& value)
+	CSKey& CSKey::operator=(const double& value)
 	{
-		std::string strVal = ConfigValueToString(value);
-		m_handler->SetValue(node, key, strVal);
-		m_handler->Save(m_filePath);
+		CSLocker locker(m_impl->m_cs);
+		m_impl->m_jsonRoot[m_fileName][m_section][m_key] = value;
+		return *this;
 	}
 
-	// ConfigFile::GetValue
-	template <typename HandlerT>
-	template <typename T>
-	T ConfigFile<HandlerT>::GetValue(const std::string& node, const std::string& key, const T& defaultVal)
+	CSKey& CSKey::operator=(const std::string& value)
 	{
-		std::string strVal = m_handler->GetValue(node, key, "");
-		if (strVal.empty()) return defaultVal;
+		CSLocker locker(m_impl->m_cs);
+		m_impl->m_jsonRoot[m_fileName][m_section][m_key] = value;
+		return *this;
+	}
 
-		if constexpr (std::is_same_v<T, std::string>)
-			return strVal;
-		else if constexpr (std::is_same_v<T, bool>)
-			return (strVal == "true" || strVal == "1");
-		else if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>)
-			return static_cast<T>(std::stoll(strVal));
-		else if constexpr (std::is_floating_point_v<T>)
-			return static_cast<T>(std::stod(strVal));
+	CSKey& CSKey::operator=(const char* value)
+	{
+		return operator=(std::string(value));
+	}
+
+	template <typename T>
+	CSKey& CSKey::SetValue(const T& value)
+	{
+		CSLocker locker(m_impl->m_cs);
+		m_impl->m_jsonRoot[m_fileName][m_section][m_key] = value;
+		return *this;
+	}
+
+	template <typename T>
+	T CSKey::GetValue(const T& defaultValue) const
+	{
+		CSLocker locker(m_impl->m_cs);
+
+		T value = defaultValue;
+		Json::Value jsonValue = m_impl->m_jsonRoot[m_fileName][m_section][m_key].get("value", Json::Value::null);
+		if (jsonValue.type() == Json::nullValue)
+			m_impl->m_jsonRoot[m_fileName][m_section][m_key]["value"] = defaultValue;
 		else
-			return defaultVal;
+			GetJsonValue(const_cast<T&>(value), jsonValue);
+
+		return value;
 	}
 
-	// 显式实例化ConfigFile（避免链接错误）
-	template class ConfigFile<IniConfigHandler>;
-	template class ConfigFile<JsonConfigHandler>;
-	template class ConfigFile<XmlConfigHandler>;
-
-	// ===================== 5. ConfigManager实现 =====================
-	ConfigManager& ConfigManager::Instance()
+	CSKey& CSKey::SetDescription(const std::string& value)
 	{
-		static ConfigManager instance;
+		CSLocker locker(m_impl->m_cs);
+		m_impl->m_jsonRoot[m_fileName][m_section][m_key]["description"] = value;
+		return *this;
+	}
+
+	std::string CSKey::GetDescription(const std::string& defaultValue) const
+	{
+		CSLocker locker(m_impl->m_cs);
+
+		std::string value = defaultValue;
+		Json::Value jsonValue = m_impl->m_jsonRoot[m_fileName][m_section][m_key].get("description", Json::Value::null);
+		if (jsonValue.type() == Json::nullValue)
+			m_impl->m_jsonRoot[m_fileName][m_section][m_key]["description"] = defaultValue;
+		else
+			GetJsonValue(value, jsonValue);
+
+		return value;
+	}
+
+	CSSection::CSSection(CSImpl* impl, const std::string& fileName)
+		: m_impl(impl),
+		  m_fileName(StringUtils::ToLower(fileName))
+	{
+	}
+
+	CSKey CSSection::operator[](const std::string& section)
+	{
+		return CSKey(m_impl, m_fileName, StringUtils::ToLower(section));
+	}
+
+	CustomSettings& CustomSettings::GetInstance()
+	{
+		static CustomSettings instance;
 		return instance;
 	}
 
-	std::shared_ptr<void> ConfigManager::operator[](const std::string& filePath)
+	CSSection CustomSettings::operator[](const std::string& fileName)
 	{
-		std::lock_guard<std::mutex> lock(m_mutex);
-		std::string ext = GetFileExtension(filePath);
-		std::string cacheKey = filePath + "_" + ext;
-
-		// 缓存命中
-		if (m_cache.find(cacheKey) != m_cache.end())
-		{
-			return m_cache[cacheKey];
-		}
-
-		// 缓存未命中
-		if (ext == "ini")
-		{
-			auto cfg = std::make_shared<ConfigFile<IniConfigHandler>>(filePath);
-			m_cache[cacheKey] = cfg;
-			return m_cache[cacheKey];
-		}
-		else if (ext == "json")
-		{
-			auto cfg = std::make_shared<ConfigFile<JsonConfigHandler>>(filePath);
-			m_cache[cacheKey] = cfg;
-			return m_cache[cacheKey];
-		}
-		else if (ext == "xml")
-		{
-			auto cfg = std::make_shared<ConfigFile<XmlConfigHandler>>(filePath);
-			m_cache[cacheKey] = cfg;
-			return m_cache[cacheKey];
-		}
-		else
-			throw std::invalid_argument("Unsupported file format: " + ext);
+		return CSSection(m_impl, StringUtils::ToLower(fileName));
 	}
 
-	void ConfigManager::ClearCache(const std::string& filePath)
+	CSKey CustomSettings::Access(const std::string& fileName, const std::string& section, const std::string& key)
 	{
-		std::lock_guard<std::mutex> lock(m_mutex);
-		if (filePath.empty())
-			m_cache.clear();
-		else
-		{
-			for (auto it = m_cache.begin(); it != m_cache.end();)
-			{
-				if (it->first.find(filePath) == 0)
-					it = m_cache.erase(it);
-				else
-					++it;
-			}
-		}
+		return CSKey(m_impl,
+		             StringUtils::ToLower(fileName),
+		             StringUtils::ToLower(section),
+		             StringUtils::ToLower(key)
+		);
 	}
 
-	std::string ConfigManager::GetFileExtension(const std::string& filePath)
+	std::vector<std::string> CustomSettings::GetJsonFileList() { return m_impl->GetJsonFileList(); }
+
+	std::string CustomSettings::JsonToString() const { return m_impl->JsonToString(); }
+
+	std::string CustomSettings::GetLastErrorMsg() const { return m_impl->GetLastErrorMsg(); }
+
+	bool CustomSettings::LoadJsonFile(const std::string& fileName) { return m_impl->LoadJsonFile(fileName); }
+
+	bool CustomSettings::SaveJsonFile(const std::string& fileName, const bool& isNewFile)
 	{
-		size_t dotPos = filePath.find_last_of('.');
-		return (dotPos == std::string::npos) ? "" : filePath.substr(dotPos + 1);
+		return m_impl->SaveJsonFile(fileName, isNewFile);
+	}
+
+	bool CustomSettings::DeleteJsonFile(const std::string& fileName) { return m_impl->DeleteJsonFile(fileName); }
+
+	bool CustomSettings::RenameJsonFile(const std::string& oldFileName, const std::string& newFileName)
+	{
+		return m_impl->RenameJsonFile(oldFileName, newFileName);
+	}
+
+	bool CustomSettings::LoadJsonFiles() { return m_impl->LoadJsonFiles(); }
+
+	bool CustomSettings::SaveJsonFiles() { return m_impl->SaveJsonFiles(); }
+
+	bool CustomSettings::JsonToVector(const std::string& fileName, std::vector<Members>& currentFileData)
+	{
+		return m_impl->JsonToVector(fileName, currentFileData);
+	}
+
+	bool CustomSettings::VectorToJson(const std::string& fileName, const std::vector<Members>& currentFileData)
+	{
+		return m_impl->VectorToJson(fileName, currentFileData);
+	}
+
+	bool CustomSettings::RemoveJsonObject(const std::string& objectPath)
+	{
+		return m_impl->RemoveJsonObject(objectPath);
+	}
+
+	CustomSettings::CustomSettings() : m_impl(new CSImpl())
+	{
+	}
+
+	CustomSettings::~CustomSettings()
+	{
+		if (m_impl)
+		{
+			delete m_impl;
+			m_impl = nullptr;
+		}
 	}
 #pragma endregion
 }
