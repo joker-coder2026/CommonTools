@@ -25,6 +25,18 @@
     <Filter Include="源文件\sqlite3">
       <UniqueIdentifier>{62acc1ad-9b0a-428e-a308-d28e690cdee6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\inicpp">
+      <UniqueIdentifier>{d29e0d1e-38d1-43de-a3b6-f665670e437c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\tinyxml2">
+      <UniqueIdentifier>{9e28398d-183c-4aa2-a806-7d22f9c34103}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\inicpp">
+      <UniqueIdentifier>{117cc24a-3dd1-4eb8-b15b-48e0b00e49ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\tinyxml2">
+      <UniqueIdentifier>{f7b96ad5-5a8c-4abd-ad4a-adf6275e53ea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="jsoncpp\json\allocator.h">
@@ -69,6 +81,12 @@
     <ClInclude Include="CommonTools.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="inicpp\inicpp.hpp">
+      <Filter>头文件\inicpp</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml2\tinyxml2.h">
+      <Filter>头文件\tinyxml2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommonTools.cpp">
@@ -85,6 +103,9 @@
     </ClCompile>
     <ClCompile Include="sqlite3\sqlite3.c">
       <Filter>源文件\sqlite3</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml2\tinyxml2.cpp">
+      <Filter>源文件\tinyxml2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -325,11 +325,11 @@ namespace inicpp
 			{
 				result = std::stoi(_sectionMap[Key].Value);
 			}
-			catch (const std::invalid_argument &e)
+			catch (const std::invalid_argument e) // delete by ht const std::invalid_argument& e
 			{
 				INI_DEBUG("Invalid argument: " << e.what() << ",input:\'" << _sectionMap[Key].Value << "\'");
 			}
-			catch (const std::out_of_range &e)
+			catch (const std::out_of_range e) // delete by ht const std::out_of_range& e
 			{
 				INI_DEBUG("Out of range: " << e.what() << ",input:\'" << _sectionMap[Key].Value << "\'");
 			}
@@ -367,11 +367,11 @@ namespace inicpp
 			{
 				result = std::stod(_sectionMap[Key].Value);
 			}
-			catch (const std::invalid_argument &e)
+			catch (const std::invalid_argument e) // delete by ht const std::invalid_argument& e
 			{
 				INI_DEBUG("Invalid argument: " << e.what() << ",input:\'" << _sectionMap[Key].Value << "\'");
 			}
-			catch (const std::out_of_range &e)
+			catch (const std::out_of_range e) // delete by ht const std::out_of_range& e
 			{
 				INI_DEBUG("Out of range: " << e.what() << ",input:\'" << _sectionMap[Key].Value << "\'");
 			}

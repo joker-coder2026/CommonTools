@@ -84,7 +84,6 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
     <GenerateManifest>false</GenerateManifest>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -128,12 +127,11 @@
       </SDLCheck>
       <PreprocessorDefinitions>_DEBUG;COMMONTOOLS_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>Default</ConformanceMode>
-      <AdditionalIncludeDirectories>.\inicpp;.\jsoncpp;.\sqlite3;.\spdlog;.\spdlog\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\inicpp;.\jsoncpp;.\tinyxml2;.\sqlite3;.\spdlog;.\spdlog\include</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AssemblerOutput>All</AssemblerOutput>
       <BrowseInformation>true</BrowseInformation>
-      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -158,14 +156,13 @@ xcopy /r /y $(ProjectDir)$(Configuration)\$(ProjectName).lib ..\..\test2016\bin3
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;COMMONTOOLS_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>Default</ConformanceMode>
-      <AdditionalIncludeDirectories>.\inicpp;.\jsoncpp;..\..\test2016\include;.\sqlite3;.\spdlog;.\spdlog\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\inicpp;.\jsoncpp;.\tinyxml2;..\..\test2016\include;.\sqlite3;.\spdlog;.\spdlog\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -181,6 +178,7 @@ xcopy /r /y $(ProjectDir)$(Configuration)\$(ProjectName).lib ..\..\test2016\bin3
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CommonTools.h" />
+    <ClInclude Include="inicpp\inicpp.hpp" />
     <ClInclude Include="jsoncpp\json\allocator.h" />
     <ClInclude Include="jsoncpp\json\assertions.h" />
     <ClInclude Include="jsoncpp\json\config.h" />
@@ -194,6 +192,7 @@ xcopy /r /y $(ProjectDir)$(Configuration)\$(ProjectName).lib ..\..\test2016\bin3
     <ClInclude Include="jsoncpp\json_tool.h" />
     <ClInclude Include="sqlite3\sqlite3.h" />
     <ClInclude Include="sqlite3\sqlite3ext.h" />
+    <ClInclude Include="tinyxml2\tinyxml2.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommonTools.cpp" />
@@ -201,6 +200,7 @@ xcopy /r /y $(ProjectDir)$(Configuration)\$(ProjectName).lib ..\..\test2016\bin3
     <ClCompile Include="jsoncpp\json_value.cpp" />
     <ClCompile Include="jsoncpp\json_writer.cpp" />
     <ClCompile Include="sqlite3\sqlite3.c" />
+    <ClCompile Include="tinyxml2\tinyxml2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="jsoncpp\json_valueiterator.inl" />
