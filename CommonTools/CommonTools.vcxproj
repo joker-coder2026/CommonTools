@@ -156,7 +156,7 @@ xcopy /r /y $(ProjectDir)$(Configuration)\$(ProjectName).lib ..\..\test2016\bin3
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;COMMONTOOLS_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>Default</ConformanceMode>
-      <AdditionalIncludeDirectories>.\inicpp;.\jsoncpp;.\tinyxml2;..\..\test2016\include;.\sqlite3;.\spdlog;.\spdlog\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\inicpp;.\jsoncpp;.\tinyxml2;.\sqlite3;.\spdlog;.\spdlog\include</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
       <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -169,11 +169,12 @@ xcopy /r /y $(ProjectDir)$(Configuration)\$(ProjectName).lib ..\..\test2016\bin3
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\test2016\bin32\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /r /y $(ProjectDir)$(Configuration)\$(ProjectName).dll ..\..\test2016\bin32\
-xcopy /r /y $(ProjectDir)$(Configuration)\$(ProjectName).lib ..\..\test2016\bin32\</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

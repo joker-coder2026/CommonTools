@@ -1,7 +1,7 @@
-ï»¿#pragma once
-#include <chrono>
+#pragma once
 #include <stdexcept>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -15,8 +15,6 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include "json/value.h"
-
 #ifdef _WINDLL
 #ifdef COMMONTOOLS_DLL
 #define COMMONTOOLS_API __declspec(dllexport)
@@ -27,390 +25,155 @@
 #define COMMONTOOLS_API //_WINEXE
 #endif // _WINDLL
 
-// ======== å‰ç½®å£°æ˜ ========
+// Í¨ÓÃµÄ·µ»ØÖµÃ¶¾Ù
+enum ReturnCode
+{
+	RC_SUCCESS = 0, ///<³É¹¦
+	RC_FAILED = 1, ///<Ê§°Ü
+	RC_ERROR = 2, ///<´íÎó
+	RC_CANCELLED = 3, ///<ÒÑÈ¡Ïû
+	RC_ABORTED = 4, ///<ÒÑÖÕÖ¹
+	RC_TIMEOUT = 5, ///<ÒÑ³¬Ê±
+	RC_BUSY = 6, ///<ÕıÔÚÃ¦/Õ¼ÓÃÖĞ
+	RC_NULL = 7, ///<¿Õ/¿ÕÖ¸Õë/...
+};
+
+
+// Ç°ÖÃÉùÃ÷
 struct sqlite3;
 struct sqlite3_stmt;
 struct sqlite3_blob;
+
 
 namespace spdlog
 {
 	class logger;
 }
 
-// ======== å‰ç½®å£°æ˜ ========
 
-// å±€éƒ¨æŠ‘åˆ¶ C4251 è­¦å‘Š
-#pragma warning(push)
-#pragma warning(disable: 4251)
-namespace CommonTools
+namespace common_tools
 {
-#pragma region BitTools
-	// ä½æ“ä½œå·¥å…·æ¨¡æ¿ç±»ï¼ˆæ¨¡æ¿å‚æ•°ï¼šBitWidth=32/64ï¼‰
-	// æ¨¡æ¿å‚æ•°ä»…æ”¯æŒ 32 / 64 ä½ï¼Œéæ³•ä½å®½ï¼ˆå¦‚ 16ï¼‰ä¼šåœ¨ç¼–è¯‘æœŸæŠ¥é”™ï¼Œé¿å…è¿è¡Œæ—¶é”™è¯¯ï¼›
-	// ç±»å‹èƒå–è‡ªåŠ¨åŒ¹é…æ•´æ•°ç±»å‹ï¼Œæ— éœ€æ‰‹åŠ¨æŒ‡å®šï¼Œå‡å°‘ä½¿ç”¨é”™è¯¯ã€‚
-	template <int BitWidth>
-	class COMMONTOOLS_API BitTools
+#pragma region INIÅäÖÃÎÄ¼ş¹ÜÀíÀà£¨IniManager£©
+	class COMMONTOOLS_API IniManager
 	{
-	public:
-		// ç±»å‹èƒå–ï¼šæ ¹æ®ä½å®½è‡ªåŠ¨åŒ¹é…æ•´æ•°ç±»å‹
-		using ValueType = std::conditional_t<BitWidth == 32, int, int64_t>;
-		using UnsignedType = std::conditional_t<BitWidth == 32, uint32_t, uint64_t>;
-
-		// ========== æ ¸å¿ƒæ¥å£ï¼ˆ32/64ä½é€šç”¨ï¼‰ ==========
-		// è®¾ç½®æŒ‡å®šä½ï¼ˆ0/1ï¼‰
-		static void Set(ValueType& value, int bit_idx, bool bit_value);
-		// è·å–æŒ‡ä¸ªä½å€¼
-		static bool Get(ValueType value, int bit_idx);
-		// ç¿»è½¬æŒ‡å®šä½
-		static void Toggle(ValueType& value, int bit_idx);
-		// åˆ¤æ–­æŒ‡ä¸ªä½æ˜¯å¦ä¸º1ï¼ˆè¯­ä¹‰å°è£…ï¼‰
-		static bool IsSet(ValueType value, int bit_idx) { return Get(value, bit_idx); }
-		// ç»Ÿè®¡ç½®1ä½æ•°ï¼ˆBrian Kernighanç®—æ³•ï¼‰
-		static int CountSetBits(ValueType value) noexcept;
-
-	private:
-		// ç¼–è¯‘æœŸå¸¸é‡ï¼šä½å®½æœ€å¤§å€¼ï¼ˆ32ä½=31ï¼Œ64ä½=63ï¼‰
-		static constexpr int MaxBitIndex = BitWidth - 1;
-		// ç¼–è¯‘æœŸå¸¸é‡ï¼šç§»ä½åŸºç¡€å€¼ï¼ˆ32ä½=1Uï¼Œ64ä½=1ULLï¼‰
-		static constexpr UnsignedType ShiftBase = static_cast<UnsignedType>(1);
-
-		// æ ¡éªŒä½ç´¢å¼•ï¼ˆå†…è”+æ— ç¬¦å·æ¯”è¾ƒï¼Œé›¶å¼€é”€ï¼‰
-		static void CheckBitIndex(int bit_idx)
-		{
-			if (static_cast<UnsignedType>(bit_idx) > MaxBitIndex)
-			{
-				throw std::out_of_range(
-					"BitTools<" + std::to_string(BitWidth) + ">: bit index must be 0~"
-					+ std::to_string(MaxBitIndex) + " (current: " + std::to_string(bit_idx) + ")"
-				);
-			}
-		}
-	};
-
-	// æ¨¡æ¿å®ä¾‹åŒ–å£°æ˜ï¼ˆå¯¹å¤–æš´éœ²32/64ä½ç‰ˆæœ¬ï¼Œé¿å…å®¢æˆ·ç«¯æ‰‹åŠ¨å®ä¾‹åŒ–ï¼‰
-	template class COMMONTOOLS_API BitTools<32>;
-	template class COMMONTOOLS_API BitTools<64>;
-
-	// ç±»å‹åˆ«åï¼ˆç®€åŒ–ä½¿ç”¨ï¼Œè¯­ä¹‰æ›´å‹å¥½ï¼‰
-	using Bit32Tools = BitTools<32>;
-	using Bit64Tools = BitTools<64>;
-#pragma endregion
-
-#pragma region StringUtils
-	class COMMONTOOLS_API StringUtils
-	{
-	public:
-		/**
-		 * @brief
-		 * @param [in] value - boolï¼Œshortï¼Œintï¼Œfloatï¼Œdoubleç­‰å¸¸è§„æ•°æ®ç±»å‹çš„å€¼
-		 * @param [in] precision - æµ®ç‚¹æ•°æ—¶å°æ•°æœ‰æ•ˆä½æ•°
-		 * @return å­—ç¬¦ä¸²æ•°å€¼
-		 **/
 		template <typename T>
-		static std::string ToString(const T& value, int precision = -1);
+		std::string ToString(const T& value)
+		{
+			std::ostringstream oss;
+			if (typeid(value) == typeid(float))
+				oss << std::setprecision(6) << value;
+			else if (typeid(value) == typeid(double))
+				oss << std::setprecision(15) << value;
+			else
+				oss << value;
+			return oss.str();
+		}
 
-		/**
-		 * @brief å­—ç¬¦ä¸²åˆ†å‰²
-		 * @param [in] str - å°†è¦åˆ†å‰²çš„å­—ç¬¦ä¸²
-		 * @param [in] sep - ç”¨äºåˆ†å‰²å­—ç¬¦ä¸²çš„ç¬¦å·ï¼Œæ”¯æŒå•ä¸ªå­—ç¬¦ã€‚å¦‚ ',')
-		 * @param [in] max_split_num - æ§åˆ¶åˆ†å‰²ç»“æœçš„æœ€å¤§æ•°é‡
-		 * @return åˆ†å‰²ç»“æœ
-		 **/
-		static std::vector<std::string> Split(const std::string& str, const char& sep, int max_split_num = -1);
+		template <typename T>
+		T FromString(const std::string& str, const T& default_value)
+		{
+			if (str.empty())
+				return default_value;
+			T value{};
+			if (std::is_same<T, bool>::value)
+			{
+				std::string s = str;
+				std::transform(s.begin(), s.end(), s.begin(), tolower);
+				value = (s == "true" || s == "1" || s == "yes");
+			}
+			else
+			{
+				std::istringstream iss(str);
+				if (!(iss >> value) || !iss.eof())
+					value = default_value;
+			}
+			return value;
+		}
 
-		/**
-		 * @brief å­—ç¬¦ä¸²åˆ†å‰²
-		 * @param [in] str - å°†è¦åˆ†å‰²çš„å­—ç¬¦ä¸²
-		 * @param [in] seps - ç”¨äºåˆ†å‰²å­—ç¬¦ä¸²çš„ç¬¦å·ï¼Œæ”¯æŒç»„åˆå­—ç¬¦ã€‚å¦‚ ",\\/"
-		 * @param [in] max_split_num - æ§åˆ¶åˆ†å‰²ç»“æœçš„æœ€å¤§æ•°é‡ï¼ˆ=0æ—¶ï¼Œä¸æ§åˆ¶æ•°é‡ï¼›>0æ—¶ï¼Œä»…å½“æœ€å¤§æ•°é‡numberå¤§äºåˆ†å‰²ç»“æœæ•°é‡æ—¶æœ‰æ•ˆï¼‰
-		 * @return åˆ†å‰²ç»“æœ
-		 **/
-		static std::vector<std::string> Split(const std::string& str, const std::string& seps, int max_split_num = -1);
-
-		/**
-		 * @brief
-		 * @param [in] list - å°†è¦åˆå¹¶çš„å­—ç¬¦ä¸²åˆ—è¡¨
-		 * @param [in] sep - ç”¨äºåˆ†å‰²å­—ç¬¦ä¸²çš„ç¬¦å·
-		 * @return åˆå¹¶ç»“æœ
-		 **/
-		static std::string Merge(const std::vector<std::string>& list, const char& sep);
-
-		/**
-		 * @brief
-		 * @param [in] list - å°†è¦åˆå¹¶çš„å­—ç¬¦ä¸²åˆ—è¡¨
-		 * @param [in] seps - ç”¨äºåˆ†å‰²å­—ç¬¦ä¸²çš„ç¬¦å·
-		 * @return åˆå¹¶ç»“æœ
-		 **/
-		static std::string Merge(const std::vector<std::string>& list, const std::string& seps);
-
-		/**
-		 * @brief å­—ç¬¦ä¸²æ ¼å¼åŒ–
-		 * @param [in] format - æ ¼å¼åŒ–å‚æ•°
-		 * @return æ ¼å¼åŒ–ç»“æœ
-		 **/
-		static std::string Format(const char* format, ...);
-
-		/**
-		 * @brief å­—ç¬¦ä¸²æ ¼å¼åŒ–
-		 * @param [out] out - æ ¼å¼åŒ–å­—ç¬¦ä¸²
-		 * @param [in] format - æ ¼å¼åŒ–å‚æ•°
-		 * @return æ ¼å¼åŒ–ç»“æœ
-		 **/
-		static int Format(std::string& out, const char* format, ...);
-
-		/**
-		 * @brief GBK è½¬ UTF-8
-		 * @param [in] gbk - è½¬æ¢å‰ GBK åŸå§‹å­—ç¬¦ä¸²
-		 * @return è½¬æ¢å UTF-8 å­—ç¬¦ä¸²
-		 **/
-		static std::string G2U(const std::string& gbk);
-
-		/**
-		* @brief UTF-8 è½¬ GBK
-		* @param [in] utf8 - è½¬æ¢å‰ UTF-8 åŸå§‹å­—ç¬¦ä¸²
-		* @return è½¬æ¢å GBK å­—ç¬¦ä¸²
-		**/
-		static std::string U2G(const std::string& utf8);
-
-		/**
-		* @brief å­—ç¬¦ä¸²ç§»é™¤å·¦ä¾§ç©ºç™½å­—ç¬¦
-		* @param [in] str - åŸå§‹å­—ç¬¦ä¸²
-		* @return ç§»é™¤åçš„å­—ç¬¦ä¸²
-		**/
-		static std::string TrimLeft(const std::string& str);
-
-		/**
-		* @brief å­—ç¬¦ä¸²ç§»é™¤å³ä¾§ç©ºç™½å­—ç¬¦
-		* @param [in] str - åŸå§‹å­—ç¬¦ä¸²
-		* @return ç§»é™¤åçš„å­—ç¬¦ä¸²
-		**/
-		static std::string TrimRight(const std::string& str);
-
-		/**
-		* @brief å­—ç¬¦ä¸²ç§»é™¤é¦–å°¾ç©ºç™½å­—ç¬¦
-		* @param [in] str - åŸå§‹å­—ç¬¦ä¸²
-		* @return ç§»é™¤åçš„å­—ç¬¦ä¸²
-		**/
-		static std::string Trim(const std::string& str);
-
-		/**
-		* @brief å­—ç¬¦ä¸²ç§»é™¤é¦–å°¾è‡ªå®šä¹‰å­—ç¬¦é›†
-		* @param [in] str - åŸå§‹å­—ç¬¦ä¸²
-		* @param [in] chars -
-		* @return ç§»é™¤åçš„å­—ç¬¦ä¸²
-		**/
-		static std::string Trim(const std::string& str, const std::string& chars);
-
-		/**
-		* @brief å­—ç¬¦ä¸²å¤§å†™
-		* @param [in] str - åŸå§‹å­—ç¬¦ä¸²
-		* @return å¤§å†™åçš„å­—ç¬¦ä¸²
-		**/
-		static std::string ToUpper(const std::string& str);
-
-		/**
-		* @brief å­—ç¬¦ä¸²å°å†™
-		* @param [in] str - åŸå§‹å­—ç¬¦ä¸²
-		* @return å°å†™åçš„å­—ç¬¦ä¸²
-		**/
-		static std::string ToLower(const std::string& str);
-	};
-#pragma endregion
-
-#pragma region TimeUtils
-	class COMMONTOOLS_API TimePoint
-	{
 	public:
-		explicit TimePoint(std::time_t timestamp = 0);
-		explicit TimePoint(const std::chrono::system_clock::time_point& tp);
+		explicit IniManager(const std::string& file_path);
 
-		int64_t ToTimeStamp();
-		std::string ToString(const std::string& format);
+		IniManager(const IniManager&) = delete;
 
-		static TimePoint Now();
-		static std::string ToString(int64_t timestamp, const std::string& format);
-		static int64_t ToTimestamp(const std::string& timeStr, const std::string& format);
+		IniManager(const IniManager&&) = delete;
+
+		IniManager& operator=(const IniManager&) = delete;
+
+		IniManager& operator=(const IniManager&&) = delete;
+
+		bool WriteValue(const std::string& section, const std::string& key, const std::string& value);
+
+		std::string ReadValue(const std::string& section, const std::string& key, const std::string& default_value);
+
+		bool WriteInt(const std::string& section, const std::string& key, int value);
+
+		bool WriteBool(const std::string& section, const std::string& key, bool value);
+
+		bool WriteDouble(const std::string& section, const std::string& key, double value);
+
+		int ReadInt(const std::string& section, const std::string& key, int default_value = 0);
+
+		bool ReadBool(const std::string& section, const std::string& key, bool default_value = false);
+
+		double ReadDouble(const std::string& section, const std::string& key, double default_value = 0.0);
+
+		std::map<std::string, std::string> ReadSection(const std::string& section);
+
+		bool WriteSection(const std::string& section, const std::map<std::string, std::string>& keyValues);
+
+		bool DeleteKey(const std::string& section, const std::string& key);
+
+		bool DeleteSection(const std::string& section);
+
+		bool FileExists();
+
+		bool BackupFile(const std::string& backupPath);
+
+		bool SectionExists(const std::string& section);
+
+		bool KeyExists(const std::string& section, const std::string& key);
+
+		std::vector<std::string> GetSectionNames();
+
+		std::vector<std::string> GetKeyNames(const std::string& section);
+
+		std::string GetLastError();
 
 	private:
-		std::chrono::system_clock::time_point time_point_;
-		static void FormatMs(int ms, char* buf);
-		static int ClampInt(int val, int min_val, int max_val);
+		void SetLastError(const std::string& error);
+
+		std::string file_path_;
+		std::string last_error_;
 	};
 #pragma endregion
 
-#pragma region FileSystem
-	class COMMONTOOLS_API FileSystem
+#pragma region XMLÅäÖÃÎÄ¼ş¹ÜÀíÀà£¨XmlManager£©
+	class COMMONTOOLS_API XmlManager
 	{
 	public:
-		/**
-		 * @brief æ£€æŸ¥æ–‡ä»¶æˆ–ç›®å½•æ˜¯å¦å­˜åœ¨
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„æˆ–ç›®å½•è·¯å¾„
-		 * @return æ£€æŸ¥ç»“æœ
-		 **/
-		static bool Exists(const std::string& path);
+		XmlManager();
 
-		/**
-		 * @brief æ£€æŸ¥æ˜¯å¦ä¸ºæ–‡ä»¶
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @return æ£€æŸ¥ç»“æœ
-		 **/
-		static bool IsFile(const std::string& path);
-
-		/**
-		 * @brief åˆ›å»ºæ–‡ä»¶
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @return åˆ›å»ºç»“æœ
-		 **/
-		static bool CreateFileX(const std::string& path);
-
-		/**
-		 * @brief é‡å‘½åæ–‡ä»¶
-		 * @param [in] srcpath - åŸæ–‡ä»¶è·¯å¾„
-		 * @param [in] dstpath - æ–°æ–‡ä»¶è·¯å¾„
-		 * @return é‡å‘½åç»“æœ
-		 **/
-		static bool RenameFileX(const std::string& srcpath, const std::string& dstpath);
-
-		/**
-		 * @brief ç§»åŠ¨æ–‡ä»¶
-		 * @param [in] srcpath - åŸæ–‡ä»¶è·¯å¾„
-		 * @param [in] dstpath - æ–°æ–‡ä»¶è·¯å¾„
-		 * @return ç§»åŠ¨ç»“æœ
-		 **/
-		static bool MoveFileX(const std::string& srcpath, const std::string& dstpath);
-
-		/**
-		 * @brief æ‹·è´æ–‡ä»¶
-		 * @param [in] srcpath - åŸæ–‡ä»¶è·¯å¾„
-		 * @param [in] dstpath - æ–°æ–‡ä»¶è·¯å¾„
-		 * @return æ‹·è´ç»“æœ
-		 **/
-		static bool CopyFileX(const std::string& srcpath, const std::string& dstpath);
-
-		/**
-		 * @brief åˆ é™¤æ–‡ä»¶
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @return åˆ é™¤ç»“æœ
-		 **/
-		static bool DeleteFileX(const std::string& path);
-
-		/**
-		 * @brief è·å–æ–‡ä»¶å¤§å°ï¼ˆå­—èŠ‚å•ä½ï¼‰
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @return æ–‡ä»¶å¤§å°
-		 **/
-		static size_t GetFileSize(const std::string& path);
-
-		/**
-		 * @brief è·å–æ–‡ä»¶åˆ›å»ºæ—¶é—´
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @return åˆ›å»ºæ—¶é—´
-		 **/
-		static time_t GetFileCreateTime(const std::string& path);
-
-		/**
-		 * @brief è·å–æ–‡ä»¶ä¿®æ”¹æ—¶é—´
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @return ä¿®æ”¹æ—¶é—´
-		 **/
-		static time_t GetFileModifiedTime(const std::string& path);
-
-		/**
-		 * @brief è·å–æ–‡ä»¶åï¼ˆä¸åŒ…å«è·¯å¾„ï¼‰
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @return æ–‡ä»¶å
-		 **/
-		static std::string GetFileName(const std::string& path);
-
-		/**
-		 * @brief è·å–æ–‡ä»¶æ‰©å±•å
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @return æ–‡ä»¶æ‰©å±•å
-		 **/
-		static std::string GetFileExtensionName(const std::string& path);
-
-		/**
-		 * @brief è·å–æ–‡ä»¶è·¯å¾„ï¼ˆä¸åŒ…å«æ–‡ä»¶åï¼‰
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @return æ–‡ä»¶è·¯å¾„
-		 **/
-		static std::string GetFileDirectory(const std::string& path);
-
-		/**
-		 * @brief è·å–ç›®å½•ä¸‹æ‰€æœ‰æ–‡ä»¶æˆ–è·å–æŒ‡å®šæ ¼å¼æ–‡ä»¶
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @param [in] extension - æ‰©å±•åä¸ºç©ºæ—¶ï¼Œè·å–ç›®å½•ä¸‹å…¨éƒ¨æ–‡ä»¶ï¼›æ‰©å±•åä¸ä¸ºç©ºæ—¶ï¼Œè·å–æŒ‡å®šæ ¼å¼æ–‡ä»¶ï¼ˆå¦‚ï¼š".txt"ï¼‰
-		 * @return æ–‡ä»¶åˆ—è¡¨ç»“æœ
-		 **/
-		static std::vector<std::string> GetFilesList(const std::string& path, const std::string& extension);
-
-
-		/**
-		 * @brief æ£€æŸ¥æ˜¯å¦ä¸ºç›®å½•
-		 * @param [in] path - ç›®å½•è·¯å¾„
-		 * @return æ£€æŸ¥ç»“æœ
-		 **/
-		static bool IsDirectory(const std::string& path);
-
-		/**
-		 * @brief é€çº§åˆ›å»ºç›®å½•
-		 * @param [in] path - ç›®å½•è·¯å¾„
-		 * @return åˆ›å»ºç»“æœ
-		 **/
-		static bool CreateDirectorys(const std::string& path);
-
-		/**
-		 * @brief é€çº§åˆ é™¤ç›®å½•
-		 * @param [in] path - ç›®å½•è·¯å¾„
-		 * @return åˆ é™¤ç»“æœ
-		 **/
-		static bool DeleteDirectorys(const std::string& path);
-
-		/**
-		 * @brief è·å–ç›®å½•ä¸‹æ‰€æœ‰å­ç›®å½•
-		 * @param [in] path - ç›®å½•è·¯å¾„
-		 * @return ç›®å½•åˆ—è¡¨
-		 **/
-		static std::vector<std::string> GetDirectorysList(const std::string& path);
-
-		/**
-		 * @brief è·å–å®ä¾‹å½“å‰å·¥ä½œç›®å½•
-		 * @param [in] path - ç›®å½•è·¯å¾„
-		 * @return å·¥ä½œç›®å½•
-		 **/
-		static std::string GetCurrentWorkDirectory();
-
-		/**
-		 * @brief è®¾ç½®å®ä¾‹å½“å‰å·¥ä½œç›®å½•
-		 * @param [in] path - ç›®å½•è·¯å¾„
-		 * @return è®¾ç½®ç»“æœ
-		 **/
-		static bool SetCurrentWorkDirectory(const std::string& path);
-
-
-		/**
-		 * @brief è¯»å–æŒ‡å®šæ–‡ä»¶å…¨éƒ¨å†…å®¹
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @return è¯»å–å†…å®¹
-		 **/
-		static std::string ReadAllText(const std::string& path);
-
-		/**
-		 * @brief å…¨éƒ¨å†…å®¹å†™å…¥æŒ‡å®šæ–‡ä»¶
-		 * @param [in] path - æ–‡ä»¶è·¯å¾„
-		 * @return å†™å…¥ç»“æœ
-		 **/
-		static bool WriteAllText(const std::string& path, const std::string& text);
+		~XmlManager();
 	};
 #pragma endregion
 
-#pragma region SQLServerManager
+#pragma region  JSONÅäÖÃÎÄ¼ş¹ÜÀíÀà£¨JsonManager£©
+	class COMMONTOOLS_API JsonManager
+	{
+	public:
+		JsonManager();
+
+		~JsonManager();
+	};
+#pragma endregion
+
+#pragma region SQLServerÅäÖÃÎÄ¼ş¹ÜÀíÀà£¨SQLServerManager£©
 	class COMMONTOOLS_API SQLServerManager
 	{
 	};
 #pragma endregion
 
-#pragma region SqliteManager
+#pragma region SqliteÅäÖÃÎÄ¼ş¹ÜÀíÀà£¨SqliteManager£©
 	class COMMONTOOLS_API SqliteManager
 	{
 	public:
@@ -427,169 +190,169 @@ namespace CommonTools
 			Blob,
 		};
 
+
 		struct SqliteParam
 		{
 			ParamType type = ParamType::Null;
-			int intVal = 0;
-			int64_t int64Val = 0;
-			std::string strVal;
-			double doubleVal = 0.0;
-			std::vector<char> blobVal;
+			int int_val = 0;
+			int64_t int64_val = 0;
+			std::string str_val;
+			double double_val = 0.0;
+			std::vector<char> blob_val;
 
-			SqliteParam(bool val) : type(ParamType::Bool), intVal(val ? 1 : 0)
+			SqliteParam(bool val)
+				: type(ParamType::Bool),
+				  int_val(val ? 1 : 0)
 			{
 			}
 
-			SqliteParam(int32_t val) : type(ParamType::Int), intVal(val)
+			SqliteParam(int32_t val)
+				: type(ParamType::Int),
+				  int_val(val)
 			{
 			}
 
-			SqliteParam(uint32_t val) : type(ParamType::UInt), int64Val(static_cast<int64_t>(val))
+			SqliteParam(uint32_t val)
+				: type(ParamType::UInt),
+				  int64_val(static_cast<int64_t>(val))
 			{
 			}
 
-			SqliteParam(int64_t val) : type(ParamType::Int64), int64Val(val)
+			SqliteParam(int64_t val)
+				: type(ParamType::Int64),
+				  int64_val(val)
 			{
 			}
 
-			SqliteParam(uint64_t val) : type(ParamType::UInt64), int64Val(static_cast<int64_t>(val))
+			SqliteParam(uint64_t val)
+				: type(ParamType::UInt64),
+				  int64_val(static_cast<int64_t>(val))
 			{
 			}
 
-			SqliteParam(const std::string& val) : type(ParamType::String), strVal(val)
+			SqliteParam(const std::string& val)
+				: type(ParamType::String),
+				  str_val(val)
 			{
 			}
 
-			SqliteParam(double val) : type(ParamType::Double), doubleVal(val)
+			SqliteParam(double val)
+				: type(ParamType::Double),
+				  double_val(val)
 			{
 			}
 
-			SqliteParam(const char* val) : type(ParamType::String), strVal(val)
+			SqliteParam(const char* val)
+				: type(ParamType::String),
+				  str_val(val)
 			{
 			}
 
-			SqliteParam(const char* val, size_t len) : type(ParamType::Blob), blobVal(val, val + len)
+			SqliteParam(const char* val, size_t len)
+				: type(ParamType::Blob),
+				  blob_val(val, val + len)
 			{
 			}
 
-			SqliteParam(const std::vector<char>& val) : type(ParamType::Blob), blobVal(val)
+			SqliteParam(const std::vector<char>& val)
+				: type(ParamType::Blob),
+				  blob_val(val)
 			{
 			}
 
-			SqliteParam(std::vector<char>&& val) : type(ParamType::Blob), blobVal(std::move(val))
+			SqliteParam(std::vector<char>&& val)
+				: type(ParamType::Blob),
+				  blob_val(std::move(val))
 			{
 			}
 		};
+
 
 		using ParamsList = std::vector<SqliteParam>;
 		using BatchParamsList = std::vector<ParamsList>;
 		using UMapList = std::vector<std::unordered_map<std::string, std::string>>;
 
 		SqliteManager() noexcept;
+
 		~SqliteManager();
-		explicit SqliteManager(const std::string& fileName);
+
+		explicit SqliteManager(const std::string& file_name);
 
 		SqliteManager(SqliteManager&& other) noexcept;
+
 		SqliteManager& operator=(SqliteManager&& other) noexcept;
+
 		SqliteManager(const SqliteManager&) = delete;
+
 		SqliteManager& operator=(const SqliteManager&) = delete;
 
-		bool Open(const std::string& fileName);
+		bool Open(const std::string& file_name);
+
 		void Close();
+
 		bool IsOpen() noexcept;
 
 		void SetMaxStmtCacheCount(size_t count) noexcept;
 
 		bool ExecuteNonQuery(const std::string& sql, const ParamsList& params = ParamsList());
-		bool ExecuteBatchNonQuery(const std::string& sql, const BatchParamsList& paramsList); // æ­¤å‡½æ•°å†…å·²ä½¿ç”¨äº‹åŠ¡
+
+		bool ExecuteBatchNonQuery(const std::string& sql, const BatchParamsList& params_list); // ´Ëº¯ÊıÄÚÒÑÊ¹ÓÃÊÂÎñ
 
 		bool ExecuteQuery(const std::string& sql, const ParamsList& params, UMapList& result);
-		bool ExecuteQueryPage(const std::string& sql, const ParamsList& params, int currentPage, int pageSize,
-		                      UMapList& data, int& totalCount, int& totalPages);
 
-		bool ReadBlobChunk(const std::string& tableName, const std::string& colName, int64_t rowId, size_t offset,
-		                   size_t chunkSize, std::vector<char>& chunkData);
-		bool WriteBlobChunk(const std::string& tableName, const std::string& colName, int64_t rowId, size_t offset,
-		                    const std::vector<char>& chunkData);
+		bool ExecuteQueryPage(const std::string& sql, const ParamsList& params, int current_page, int page_size,
+		                      UMapList& data, int& total_count, int& total_pages);
+
+		bool ReadBlobChunk(const std::string& table_name, const std::string& col_name, int64_t row_id, size_t offset,
+		                   size_t chunk_size, std::vector<char>& chunk_data);
+
+		bool WriteBlobChunk(const std::string& table_name, const std::string& col_name, int64_t row_id, size_t offset,
+		                    const std::vector<char>& chunk_data);
 
 		bool BeginTransaction();
+
 		bool CommitTransaction();
+
 		bool RollbackTransaction();
 
 		int64_t GetLastInsertId() const noexcept;
+
 		std::string GetLastErrorMsg() const noexcept;
 
 	private:
 		bool CheckConnection() noexcept;
+
 		bool TryReconnect() noexcept;
 
 		sqlite3_stmt* GetStmtCache(const std::string& sql);
+
 		void AddStmtCache(const std::string& sql, sqlite3_stmt* stmt);
+
 		void ClearStmtCache();
 
 		bool BindParams(sqlite3_stmt* stmt, const ParamsList& params);
 
 		bool ExecutePreparedQuery(sqlite3_stmt* stmt, UMapList& result);
 
-		sqlite3* m_db = nullptr; // æ•°æ®åº“å¥æŸ„
-		mutable std::recursive_mutex m_mutex; // çº¿ç¨‹å®‰å…¨é”
-		std::string m_lastErrMsg; // é”™è¯¯ä¿¡æ¯
-		std::string m_fileName; // æ•°æ®åº“è·¯å¾„
-		size_t m_maxStmtCacheCount = 50; // æœ€å¤§ç¼“å­˜è¯­å¥æ•°
-		std::unordered_map<std::string, sqlite3_stmt*> m_stmtCache; // é¢„å¤„ç†è¯­å¥ç¼“å­˜
+		sqlite3* db_ = nullptr; // Êı¾İ¿â¾ä±ú
+		mutable std::recursive_mutex mutex_; // Ïß³Ì°²È«Ëø
+		std::string last_error_; // ´íÎóĞÅÏ¢
+		std::string file_name_; // Êı¾İ¿âÂ·¾¶
+		size_t stmt_cache_max_count_ = 50; // ×î´ó»º´æÓï¾äÊı
+		std::unordered_map<std::string, sqlite3_stmt*> stmt_cache_; // Ô¤´¦ÀíÓï¾ä»º´æ
 	};
 
 #pragma endregion
 
-#pragma region ThreadPool
+#pragma region Ïß³Ì³ØÀà£¨ThreadPool£©
 	class COMMONTOOLS_API ThreadPool
 	{
 	public:
-		explicit ThreadPool(size_t threads) : stop(false)
-		{
-			for (size_t i = 0; i < threads; ++i)
-			{
-				workers.emplace_back([this]
-				{
-					for (;;)
-					{
-						std::function<void()> task;
+		explicit ThreadPool(size_t threads = 4);
 
-						{
-							std::unique_lock<std::mutex> lock(this->queue_mutex);
-							this->condition.wait(lock, [this] { return this->stop || !this->tasks.empty(); });
+		~ThreadPool();
 
-							if (this->stop && this->tasks.empty())
-								return;
-
-							task = std::move(this->tasks.front());
-							this->tasks.pop();
-						}
-
-						try
-						{
-							task();
-						}
-						catch (...)
-						{
-							// Handle exceptions thrown by tasks
-							// Could add logging here if needed
-						}
-					}
-				});
-			}
-		}
-
-		~ThreadPool()
-		{
-			{
-				std::unique_lock<std::mutex> lock(queue_mutex);
-				stop = true;
-			}
-			condition.notify_all();
-			for (std::thread& worker : workers)
-				worker.join();
-		}
+		size_t pending_tasks();
 
 		template <class F, class... Args>
 		std::future<std::result_of_t<F(Args...)>> enqueue(F&& f, Args&&... args)
@@ -601,314 +364,154 @@ namespace CommonTools
 
 			std::future<return_type> res = task->get_future();
 			{
-				std::unique_lock<std::mutex> lock(queue_mutex);
+				std::unique_lock<std::mutex> lock(queue_mutex_);
 
 				// don't allow enqueueing after stopping the pool
-				if (stop)
+				if (stop_)
 					throw std::runtime_error("enqueue on stopped ThreadPool");
 
-				tasks.emplace([task]() { (*task)(); });
+				tasks_.emplace([task]() { (*task)(); });
 			}
-			condition.notify_one();
+			condition_.notify_one();
 			return res;
 		}
 
 	private:
 		// need to keep track of threads so we can join them
-		std::vector<std::thread> workers;
+		std::vector<std::thread> workers_;
 
 		// the task queue
-		std::queue<std::function<void()>> tasks;
+		std::queue<std::function<void()>> tasks_;
 
 		// synchronization
-		std::mutex queue_mutex;
-		std::condition_variable condition;
-		std::atomic<bool> stop;
+		std::mutex queue_mutex_;
+		std::condition_variable condition_;
+		std::atomic<bool> stop_;
 	};
 #pragma endregion
 
-#pragma region CSLocker
-	// CSLocker ï¿½ï¿½ CriticalSectionLocker
-	class CSLocker
+#pragma region ×Ô¶¨ÒåÅäÖÃÀà£¨CfgCustom£©
+	// Êı¾İÀàĞÍ
+	enum class ConfigDataType { Null, Int, Double, String };
+
+
+	// ¼ü·ÃÎÊÆ÷
+	class COMMONTOOLS_API ConfigKey
 	{
 	public:
-		explicit CSLocker(CRITICAL_SECTION& cs) : m_cs(cs) { EnterCriticalSection(&m_cs); }
-		~CSLocker() { LeaveCriticalSection(&m_cs); }
-	private:
+		ConfigKey(class ConfigImpl* impl, const std::string& file_name, const std::string& section,
+		          const std::string& key);
 
-		CSLocker(const CSLocker&) = delete;
-		CSLocker& operator=(const CSLocker&) = delete;
-		CSLocker(const CSLocker&&) = delete;
-		CSLocker& operator=(const CSLocker&&) = delete;
+		ConfigKey(class ConfigImpl* impl, const std::string& file_name, const std::string& section);
 
-		CRITICAL_SECTION& m_cs;
-	};
+		ConfigKey operator[](const std::string& key);
 
-#pragma endregion
+		ConfigKey& SetInt(const int& value);
 
-#pragma region CustomSettings
-	// é…ç½®å€¼ç±»å‹æšä¸¾
-	enum class CSType {
-		Null,   // ç©ºå€¼
-		Int,    // æ•´æ•°
-		Double, // æµ®ç‚¹æ•°
-		String, // å­—ç¬¦ä¸²
-		Bool    // å¸ƒå°”å€¼
-	};
+		ConfigKey& SetDouble(const double& value);
 
-	// é…ç½®é”®ç±»ï¼Œç”¨äºæ“ä½œé…ç½®å€¼
-	class COMMONTOOLS_API CSKey
-	{
-	public:
-		/**
-		 * @brief æ„é€ å‡½æ•°
-		 * @param [in] impl - å®ç°æŒ‡é’ˆ
-		 * @param [in] fileName - æ–‡ä»¶å
-		 * @param [in] section - èŠ‚å
-		 * @param [in] key - é”®å
-		 **/
-		CSKey(class CSImpl* impl, const std::string& fileName, const std::string& section, const std::string& key);
-		
-		/**
-		 * @brief æ„é€ å‡½æ•°
-		 * @param [in] impl - å®ç°æŒ‡é’ˆ
-		 * @param [in] fileName - æ–‡ä»¶å
-		 * @param [in] section - èŠ‚å
-		 **/
-		CSKey(class CSImpl* impl, const std::string& fileName, const std::string& section);
-		
-		/**
-		 * @brief æ“ä½œç¬¦é‡è½½ï¼Œç”¨äºè®¿é—®å­é”®
-		 * @param [in] key - é”®å
-		 * @return CSKeyå¯¹è±¡
-		 **/
-		CSKey operator[](const std::string& key);
-		
-		/**
-		 * @brief é‡è½½èµ‹å€¼è¿ç®—ç¬¦ï¼Œæ”¯æŒç›´æ¥èµ‹å€¼intç±»å‹
-		 * @param [in] value - æ•´æ•°å€¼
-		 * @return CSKeyå¯¹è±¡
-		 **/
-		CSKey& operator=(const int& value);
-		
-		/**
-		 * @brief é‡è½½èµ‹å€¼è¿ç®—ç¬¦ï¼Œæ”¯æŒç›´æ¥èµ‹å€¼doubleç±»å‹
-		 * @param [in] value - æµ®ç‚¹æ•°å€¼
-		 * @return CSKeyå¯¹è±¡
-		 **/
-		CSKey& operator=(const double& value);
-		
-		/**
-		 * @brief é‡è½½èµ‹å€¼è¿ç®—ç¬¦ï¼Œæ”¯æŒç›´æ¥èµ‹å€¼stringç±»å‹
-		 * @param [in] value - å­—ç¬¦ä¸²å€¼
-		 * @return CSKeyå¯¹è±¡
-		 **/
-		CSKey& operator=(const std::string& value);
-		
-		/**
-		 * @brief é‡è½½èµ‹å€¼è¿ç®—ç¬¦ï¼Œæ”¯æŒç›´æ¥èµ‹å€¼char*ç±»å‹
-		 * @param [in] value - å­—ç¬¦ä¸²å€¼
-		 * @return CSKeyå¯¹è±¡
-		 **/
-		CSKey& operator=(const char* value);
+		ConfigKey& SetString(const std::string& value);
 
-		/**
-		 * @brief è®¾ç½®å€¼ï¼Œæ”¯æŒé“¾å¼è°ƒç”¨
-		 * @param [in] value - è¦è®¾ç½®çš„å€¼
-		 * @return CSKeyå¯¹è±¡
-		 **/
-		template<typename T>
-		CSKey& SetValue(const T& value);
-		
-		/**
-		 * @brief è·å–å€¼ï¼Œæ”¯æŒé»˜è®¤å€¼
-		 * @param [in] defaultValue - é»˜è®¤å€¼
-		 * @return è·å–çš„å€¼
-		 **/
-		template<typename T>
-		T GetValue(const T& defaultValue = T()) const;
+		ConfigKey& SetDescription(const std::string& value);
 
-		/**
-		 * @brief è®¾ç½®æè¿°ï¼Œæ”¯æŒé“¾å¼è°ƒç”¨
-		 * @param [in] value - æè¿°å€¼
-		 * @return CSKeyå¯¹è±¡
-		 **/
-		CSKey& SetDescription(const std::string& value);
-		
-		/**
-		 * @brief è·å–æè¿°ï¼Œæ”¯æŒé»˜è®¤å€¼
-		 * @param [in] defaultValue - é»˜è®¤å€¼
-		 * @return æè¿°å€¼
-		 **/
-		std::string GetDescription(const std::string& defaultValue = "") const;
+		int GetInt(const int& default_value = 0, const std::string& description = "") const;
+
+		double GetDouble(const double& default_value = 0.0, const std::string& description = "") const;
+
+		std::string GetString(const std::string& default_value = "", const std::string& description = "") const;
+
+		std::string GetDescription(const std::string& default_value = "") const;
+
+		ConfigDataType GetType() const;
 
 	private:
-		class CSImpl* m_impl;
-		std::string m_fileName;
-		std::string m_section;
-		std::string m_key;
+		class ConfigImpl* impl_;
+		std::string file_name_;
+		std::string section_;
+		std::string key_;
 	};
 
-	// é…ç½®èŠ‚ç±»ï¼Œç”¨äºè®¿é—®é…ç½®èŠ‚
-	class COMMONTOOLS_API CSSection
+
+	// ½Ú·ÃÎÊÆ÷
+	class COMMONTOOLS_API ConfigSection
 	{
 	public:
-		/**
-		 * @brief æ„é€ å‡½æ•°
-		 * @param [in] impl - å®ç°æŒ‡é’ˆ
-		 * @param [in] fileName - æ–‡ä»¶å
-		 **/
-		CSSection(class CSImpl* impl, const std::string& fileName);
-		
-		/**
-		 * @brief æ“ä½œç¬¦é‡è½½ï¼Œç”¨äºè®¿é—®é…ç½®èŠ‚
-		 * @param [in] section - èŠ‚å
-		 * @return CSKeyå¯¹è±¡
-		 **/
-		CSKey operator[](const std::string& section);
+		ConfigSection(class ConfigImpl* impl, const std::string& file_name);
+
+		ConfigKey operator[](const std::string& section);
+
 	private:
-		class CSImpl* m_impl;
-		std::string m_fileName;
+		class ConfigImpl* impl_;
+		std::string file_name_;
 	};
 
-	// è‡ªå®šä¹‰é…ç½®ç±»ï¼Œç”¨äºç®¡ç†JSONé…ç½®æ–‡ä»¶
-	class COMMONTOOLS_API CustomSettings
+
+	// ×Ô¶¨ÒåÅäÖÃÀà
+	class COMMONTOOLS_API ConfigCustom
 	{
 	public:
-		// é…ç½®æˆå‘˜ç»“æ„ä½“
 		struct COMMONTOOLS_API Members
 		{
-			std::string fileName;   // æ–‡ä»¶å
-			std::string section;    // èŠ‚å
-			std::string key;        // é”®å
-			std::string value;      // å€¼
-			std::string description;// æè¿°
+			std::string file_name; // ÎÄ¼şÃû
+			std::string section; // ½Úµã
+			std::string key; // ¼üÃû
+			std::string value; // Öµ
+			std::string description; // ÃèÊö
 		};
 
-		/**
-		 * @brief è·å–å•ä¾‹å®ä¾‹
-		 * @return CustomSettingså•ä¾‹
-		 **/
-		static CustomSettings& GetInstance();
 
-		/**
-		 * @brief æ“ä½œç¬¦é‡è½½ï¼Œç”¨äºè®¿é—®æ–‡ä»¶
-		 * @param [in] fileName - æ–‡ä»¶å
-		 * @return CSSectionå¯¹è±¡
-		 **/
-		CSSection operator[](const std::string& fileName);
+		static ConfigCustom& GetInstance();
 
-		/**
-		 * @brief ç›´æ¥è®¿é—®é…ç½®é”®
-		 * @param [in] fileName - æ–‡ä»¶å
-		 * @param [in] section - èŠ‚å
-		 * @param [in] key - é”®å
-		 * @return CSKeyå¯¹è±¡
-		 **/
-		CSKey Access(const std::string& fileName, const std::string& section, const std::string& key);
+		ConfigSection operator[](const std::string& file_name);
 
-		/**
-		 * @brief è·å–JSONæ–‡ä»¶åˆ—è¡¨
-		 * @return JSONæ–‡ä»¶åˆ—è¡¨
-		 **/
 		std::vector<std::string> GetJsonFileList();
 
-		/**
-		 * @brief å°†JSONè½¬æ¢ä¸ºå­—ç¬¦ä¸²
-		 * @return JSONå­—ç¬¦ä¸²
-		 **/
 		std::string JsonToString() const;
 
-		/**
-		 * @brief è·å–æœ€åé”™è¯¯ä¿¡æ¯
-		 * @return é”™è¯¯ä¿¡æ¯
-		 **/
 		std::string GetLastErrorMsg() const;
 
-		/**
-		 * @brief åŠ è½½JSONæ–‡ä»¶
-		 * @param [in] fileName - æ–‡ä»¶å
-		 * @return åŠ è½½ç»“æœ
-		 **/
-		bool LoadJsonFile(const std::string& fileName);
+		bool LoadJsonFile(const std::string& file_name);
 
-		/**
-		 * @brief ä¿å­˜JSONæ–‡ä»¶
-		 * @param [in] fileName - æ–‡ä»¶å
-		 * @param [in] isNewFile - æ˜¯å¦ä¸ºæ–°æ–‡ä»¶
-		 * @return ä¿å­˜ç»“æœ
-		 **/
-		bool SaveJsonFile(const std::string& fileName, const bool& isNewFile = false);
+		bool SaveJsonFile(const std::string& file_name, const bool& is_new_file = false);
 
-		/**
-		 * @brief åˆ é™¤JSONæ–‡ä»¶
-		 * @param [in] fileName - æ–‡ä»¶å
-		 * @return åˆ é™¤ç»“æœ
-		 **/
-		bool DeleteJsonFile(const std::string& fileName);
+		bool DeleteJsonFile(const std::string& file_name);
 
-		/**
-		 * @brief é‡å‘½åJSONæ–‡ä»¶
-		 * @param [in] oldFileName - æ—§æ–‡ä»¶å
-		 * @param [in] newFileName - æ–°æ–‡ä»¶å
-		 * @return é‡å‘½åç»“æœ
-		 **/
-		bool RenameJsonFile(const std::string& oldFileName, const std::string& newFileName);
+		bool RenameJsonFile(const std::string& old_file_name, const std::string& new_file_name);
 
-		/**
-		 * @brief åŠ è½½æ‰€æœ‰æ–‡ä»¶
-		 * @return åŠ è½½ç»“æœ
-		 **/
-		bool LoadJsonFiles();
-		
-		/**
-		 * @brief ä¿å­˜æ‰€æœ‰æ–‡ä»¶
-		 * @return ä¿å­˜ç»“æœ
-		 **/
-		bool SaveJsonFiles();
+		bool LoadJsonFiles(); // ¼ÓÔØËùÓĞÎÄ¼ş
+		bool SaveJsonFiles(); // ±£´æËùÓĞÎÄ¼ş
 
-		/**
-		 * @brief å°†JSONè½¬æ¢ä¸ºå‘é‡
-		 * @param [in] fileName - æ–‡ä»¶å
-		 * @param [out] currentFileData - è¾“å‡ºå‚æ•°
-		 * @return è½¬æ¢ç»“æœ
-		 **/
-		bool JsonToVector(const std::string& fileName, std::vector<CustomSettings::Members>& currentFileData);
+		bool JsonToVector(const std::string& file_name, std::vector<Members>& current_file_data);
 
-		/**
-		 * @brief å°†å‘é‡è½¬æ¢ä¸ºJSON
-		 * @param [in] fileName - æ–‡ä»¶å
-		 * @param [in] currentFileData - è¾“å…¥å‚æ•°
-		 * @return è½¬æ¢ç»“æœ
-		 **/
-		bool VectorToJson(const std::string& fileName, const std::vector<CustomSettings::Members>& currentFileData);
+		bool VectorToJson(const std::string& file_name, const std::vector<Members>& current_file_data);
 
-		/**
-		 * @brief ç§»é™¤JSONå¯¹è±¡
-		 * @param [in] objectPath - å¯¹è±¡è·¯å¾„ï¼Œæ ¼å¼ï¼šfileName/section/key
-		 * @return ç§»é™¤ç»“æœ
-		 **/
-		bool RemoveJsonObject(const std::string& objectPath);
+		bool RemoveJsonObject(const std::string& object_path);
+
+		// ÒÆ³ıJSONÏÂ¶ÔÏó¡£object_path ¸ñÊ½£ºfileName/section/key ¡ú "demo.json/test/enable"
 
 	private:
-		CustomSettings();
-		~CustomSettings();
+		ConfigCustom();
 
-		// ç¦ç”¨å¤åˆ¶å’Œç§»åŠ¨
-		CustomSettings(const CustomSettings&) = delete;
-		CustomSettings(const CustomSettings&&) = delete;
-		CustomSettings operator = (const CustomSettings&) = delete;
+		~ConfigCustom();
 
-		class CSImpl* m_impl; // å®ç°æŒ‡é’ˆ
+		ConfigCustom(const ConfigCustom&) = delete;
+
+		ConfigCustom(const ConfigCustom&&) = delete;
+
+		ConfigCustom& operator=(const ConfigCustom&) = delete;
+
+		ConfigCustom& operator=(const ConfigCustom&&) = delete;
+
+		class ConfigImpl* impl_;
 	};
 
-#define CFG CommonTools::CustomSettings::GetInstance()
 
+#define CFG common_tools::ConfigCustom::GetInstance()
 
 #pragma endregion
 
-#pragma region LoggerManager
-	using LoggerName = enum class COMMONTOOLS_API LogName // æ—¥å¿—å™¨æšä¸¾ï¼Œæ ¹æ®æ­¤æšä¸¾åˆ›å»ºä¸åŒæ—¥å¿—å™¨
+#pragma region ÈÕÖ¾¹ÜÀíÀà£¨LoggerManager£©
+	using LoggerName = enum class COMMONTOOLS_API LogName // ÈÕÖ¾Æ÷Ã¶¾Ù£¬¸ù¾İ´ËÃ¶¾Ù´´½¨²»Í¬ÈÕÖ¾Æ÷
 	{
 		DEFAULT = 0,
 		MOUNT,
@@ -917,10 +520,10 @@ namespace CommonTools
 		OPTIMIZE,
 		SLAVE_CONTROL,
 		CAMERA_TOP,
-		LOGNAME_MAX, //æœ€å¤§æ•°é‡
+		LOGNAME_MAX, //×î´óÊıÁ¿
 	};
 
-	using LoggerLevel = enum class COMMONTOOLS_API LogLevel // å¯¹åº” spdlog::level::level_enum
+	using LoggerLevel = enum class COMMONTOOLS_API LogLevel // ¶ÔÓ¦ spdlog::level::level_enum
 	{
 		Trace,
 		Debug,
@@ -936,12 +539,12 @@ namespace CommonTools
 
 	using LoggerOutput = enum class COMMONTOOLS_API LogOutput
 	{
-		None = 0, // 00000 = 0      // è¾“å‡º   æ— 
-		Console = 1 << 0, // 00001 = 1      // è¾“å‡ºåˆ° æ§åˆ¶å°
-		File = 1 << 1, // 00010 = 2      // è¾“å‡ºåˆ° æ–‡ä»¶
-		Gui = 1 << 2, // 00100 = 4      // è¾“å‡ºåˆ° ç•Œé¢
-		VsTrace = 1 << 3, // 01000 = 8      // è¾“å‡ºåˆ° VS TRACE
-		Tracer = 1 << 4 // 10000 = 16     // è¾“å‡ºåˆ° TRACER.exe
+		None = 0, // 00000 = 0      // Êä³ö   ÎŞ
+		Console = 1 << 0, // 00001 = 1      // Êä³öµ½ ¿ØÖÆÌ¨
+		File = 1 << 1, // 00010 = 2      // Êä³öµ½ ÎÄ¼ş
+		Gui = 1 << 2, // 00100 = 4      // Êä³öµ½ ½çÃæ
+		VsTrace = 1 << 3, // 01000 = 8      // Êä³öµ½ VS TRACE
+		Tracer = 1 << 4 // 10000 = 16     // Êä³öµ½ TRACER.exe
 	};
 
 	inline LogOutput operator|(LogOutput a, LogOutput b)
@@ -960,59 +563,73 @@ namespace CommonTools
 	}
 
 	inline LogOutput operator~(LogOutput a) { return static_cast<LogOutput>(~static_cast<uint32_t>(a)); }
+
 	inline LogOutput operator|=(LogOutput& a, LogOutput b) { return a = a | b; }
+
 	inline LogOutput operator&=(LogOutput& a, LogOutput b) { return a = a & b; }
+
 	inline LogOutput operator^=(LogOutput& a, LogOutput b) { return a = a ^ b; }
+
 
 	class COMMONTOOLS_API Logger
 	{
 	public:
 		struct COMMONTOOLS_API Config
 		{
-			LogName logName = LogName::DEFAULT; // æ—¥å¿—å™¨åç§°
-			std::string filePath = "d:/log"; // æ–‡ä»¶è·¯å¾„
-			std::string fileName = "default.ini"; // æ–‡ä»¶å
+			LogName log_name = LogName::DEFAULT; // ÈÕÖ¾Æ÷Ãû³Æ
+			std::string file_path = "d:/log"; // ÎÄ¼şÂ·¾¶
+			std::string file_name = "default.ini"; // ÎÄ¼şÃû
 
-			LogLevel level = LogLevel::Off; // æ—¥å¿—çº§åˆ«
-			LogOutput outputs = LogOutput::None; // æ—¥å¿—è¾“å‡ºç›®æ ‡
+			LogLevel level = LogLevel::Off; // ÈÕÖ¾¼¶±ğ
+			LogOutput outputs = LogOutput::None; // ÈÕÖ¾Êä³öÄ¿±ê
 
-			std::size_t maxFileSize = 10 * 1024 * 1024; // æŒ‰å¤§å°æ»šåŠ¨æ—¶çš„æ–‡ä»¶å¤§å°é™åˆ¶
-			std::size_t maxFileCount = 100; // æŒ‰å¤§å°æ»šåŠ¨æ—¶çš„æ–‡ä»¶æ•°é‡é™åˆ¶
+			std::size_t max_file_size = 10 * 1024 * 1024; // °´´óĞ¡¹ö¶¯Ê±µÄÎÄ¼ş´óĞ¡ÏŞÖÆ
+			std::size_t max_file_count = 100; // °´´óĞ¡¹ö¶¯Ê±µÄÎÄ¼şÊıÁ¿ÏŞÖÆ
 
-			bool enableDatabase = true; // å¯ç”¨å†™æ—¥å¿—æ•°æ®åº“
+			bool enable_database = true; // ÆôÓÃĞ´ÈÕÖ¾Êı¾İ¿â
 
 			Config() = default;
+
 			explicit Config(const LogName& name);
 		};
 
+
 		struct COMMONTOOLS_API MetaMsg
 		{
-			std::chrono::system_clock::time_point time;
-			LogName logger_name; // æ—¥å¿—å™¨å
+			std::string time;
+			LogName logger_name; // ÈÕÖ¾Æ÷Ãû
 			size_t thread_id = 0;
 			LogOutput output = LogOutput::None;
 			LogLevel level = LogLevel::Off;
-			const char* file = nullptr; // æ–‡ä»¶åï¼ˆå¯èƒ½ä¸ºnullptrï¼‰
-			int line = 0; // è¡Œå·ï¼ˆå¯èƒ½ä¸º0ï¼‰
-			const char* func = nullptr; // å‡½æ•°åï¼ˆå¯èƒ½ä¸ºnullptrï¼‰
+			std::string file; // ÎÄ¼şÃû
+			int line = 0; // ĞĞºÅ£¨¿ÉÄÜÎª0£©
+			std::string func; // º¯ÊıÃû
 			std::string message;
 		};
 
+
 		Logger();
+
 		~Logger();
 
 		explicit Logger(const LogName& name);
+
 		explicit Logger(const Config& config);
 
 		Logger(const Logger& other) = delete;
+
 		Logger& operator=(const Logger& other) = delete;
 
 		Logger(Logger&& other) = default;
+
 		Logger& operator=(Logger&& other) = default;
 
 		bool Initialize();
+
 		bool IsInitialized() const;
+
 		void Flush();
+
 		void Shutdown();
 
 		Config& GetConfig();
@@ -1020,72 +637,91 @@ namespace CommonTools
 		void SetOutputCallback(LogOutput type, const std::function<void(const MetaMsg&)>& callback);
 
 		void Trace(const char* format, ...);
+
 		void Debug(const char* format, ...);
+
 		void Info(const char* format, ...);
+
 		void Warn(const char* format, ...);
+
 		void Error(const char* format, ...);
+
 		void Critical(const char* format, ...);
+
 		void LogRecord(LogLevel level, const char* format, ...);
 
 		void Trace(const char* file, int line, const char* function, const char* format, ...);
+
 		void Debug(const char* file, int line, const char* function, const char* format, ...);
+
 		void Info(const char* file, int line, const char* function, const char* format, ...);
+
 		void Warn(const char* file, int line, const char* function, const char* format, ...);
+
 		void Error(const char* file, int line, const char* function, const char* format, ...);
+
 		void Critical(const char* file, int line, const char* function, const char* format, ...);
+
 		void LogRecord(const char* file, int line, const char* function, LogLevel level, const char* format, ...);
 
 	private:
 		std::shared_ptr<spdlog::logger> GetCachedLogger(LogOutput outputs);
+
 		std::shared_ptr<spdlog::logger> CreateTempLogger(LogOutput outputs);
 
 		std::string FormatLogMessage(LogOutput outputs, LogLevel level, const char* file, int line,
 		                             const char* function, const char* message);
+
 		void Log(LogLevel level, const char* file, int line, const char* function, const char* message);
 
 		bool HasValidOutput(LogOutput outputs) const;
 
 		class CustomSink;
+
 		std::shared_ptr<CustomSink> CreateCustomSink(const std::function<void(const MetaMsg&)>& callback);
 
-		Config m_config;
+		Config config_;
 
-		std::map<LogOutput, std::function<void(const MetaMsg&)>> m_customCallbacks;
-		std::atomic<bool> m_initialized;
+		std::map<LogOutput, std::function<void(const MetaMsg&)>> custom_callbacks_;
+		std::atomic<bool> is_initialized_;
 
-		std::unordered_map<LogOutput, std::shared_ptr<spdlog::logger>> m_loggerCache;
-		std::mutex m_cacheMutex;
-		std::chrono::steady_clock::time_point m_lastCleanupTime;
+		std::unordered_map<LogOutput, std::shared_ptr<spdlog::logger>> logger_cache_;
+		std::mutex cache_mutex_;
+		std::chrono::steady_clock::time_point last_cleanup_time_;
 	};
+
 
 	class COMMONTOOLS_API LogDbManager
 	{
 	public:
 		LogDbManager(const LogDbManager&) = delete;
+
 		LogDbManager& operator=(const LogDbManager&) = delete;
 
 		static LogDbManager& GetInstance();
 
 		bool Init();
+
 		void Exit();
 
 		void AddMsgToQueue(const Logger::MetaMsg& msg);
 
 	private:
 		LogDbManager() = default;
+
 		~LogDbManager() = default;
 
 		void WorkerThread();
 
-		std::atomic<bool> m_running{false};
-		std::mutex m_queueMutex;
-		std::condition_variable m_cv;
-		std::queue<Logger::MetaMsg> m_queueMsg;
-		std::unordered_set<std::queue<Logger::MetaMsg>*> m_queues;
+		std::atomic<bool> is_running_{false};
+		std::mutex queue_mutex_;
+		std::condition_variable cv_;
+		std::queue<Logger::MetaMsg> queue_msg_;
+		std::unordered_set<std::queue<Logger::MetaMsg>*> queues_;
 
-		std::mutex m_dbMutex; // æ•°æ®åº“é”
-		std::shared_ptr<SqliteManager> m_db; // å½“å‰æ•°æ®åº“å®ä¾‹
-		std::string m_dbLastDate; // å½“å‰æ•°æ®åº“æ—¥æœŸ
+		std::mutex db_mutex_; // Êı¾İ¿âËø
+		std::shared_ptr<SqliteManager> db_; // µ±Ç°Êı¾İ¿âÊµÀı
+		std::string db_last_date_; // µ±Ç°Êı¾İ¿âÈÕÆÚ
 	};
 
 
@@ -1094,17 +730,21 @@ namespace CommonTools
 	public:
 		static LoggerManager& GetInstance();
 
-		std::shared_ptr<Logger> logger(const LogName& name);
-		std::vector<LogName> loggerNames() const;
+		std::shared_ptr<Logger> GetLogger(const LogName& name);
+
+		std::vector<LogName> LoggerNames() const;
 
 	private:
 		LoggerManager();
+
 		~LoggerManager();
 
 		LoggerManager(const LoggerManager&) = delete;
+
 		LoggerManager& operator=(const LoggerManager&) = delete;
 
 		bool createLogger(const LogName& name);
+
 		bool createLogger(const Logger::Config& config);
 
 		std::string LogNameToStr(const LogName& name);
@@ -1115,27 +755,28 @@ namespace CommonTools
 	private:
 		void CleanupThread();
 
-		std::unordered_map<LogName, std::shared_ptr<Logger>> m_loggers; // æ—¥å¿—å™¨æ˜ å°„
-		mutable std::mutex m_loggerMutex;
+		std::unordered_map<LogName, std::shared_ptr<Logger>> loggers_; // ÈÕÖ¾Æ÷Ó³Éä
+		mutable std::mutex logger_mutex_;
 
-		std::unordered_map<std::string, int> m_cleanupMap; // <æ—¥å¿—è·¯å¾„ï¼Œä¿ç•™å¤©æ•°>
-		std::atomic<bool> m_stopCleanupThread{false}; // åœæ­¢çº¿ç¨‹æ ‡å¿—
-		std::thread m_cleanupThread; // åå°æ¸…ç†çº¿ç¨‹
-		std::mutex m_cleanupMutex; // ä¿æŠ¤æ¸…ç†é…ç½®
+		std::unordered_map<std::string, int> cleanup_map_; // <ÈÕÖ¾Â·¾¶£¬±£ÁôÌìÊı>
+		std::atomic<bool> stop_cleanup_thread_{false}; // Í£Ö¹Ïß³Ì±êÖ¾
+		std::thread cleanup_thread_; // ºóÌ¨ÇåÀíÏß³Ì
+		std::mutex cleanup_mutex_; // ±£»¤ÇåÀíÅäÖÃ
 	};
 
-	//TODO:å¦‚ä½•åŒºåˆ†æ¨¡ç»„ï¼Œä¸åŒç›¸æœºç±»å‹
-#define LOG CommonTools::LoggerManager::GetInstance()
-#define LOG_MOUNT(level, format, ...) LOG.logger(CommonTools::LogName::MOUNT)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
-#define LOG_MOTION(level, format, ...) LOG.logger(CommonTools::LogName::MOTION)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
-#define LOG_DATA(level, format, ...) LOG.logger(CommonTools::LogName::DATA)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
-#define LOG_OPTIMIZE(level, format, ...) LOG.logger(CommonTools::LogName::OPTIMIZE)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
-#define LOG_SLAVE_CONTROL(level, format, ...) LOG.logger(CommonTools::LogName::SLAVE_CONTROL)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
-#define LOG_CAMERA_TOP(level, format, ...) LOG.logger(CommonTools::LogName::CAMERA_TOP)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+
+	//TODO:ÈçºÎÇø·ÖÄ£×é£¬²»Í¬Ïà»úÀàĞÍ
+#define LOG common_tools::LoggerManager::GetInstance()
+#define LOG_MOUNT(level, format, ...) LOG.GetLogger(common_tools::LogName::MOUNT)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+#define LOG_MOTION(level, format, ...) LOG.GetLogger(common_tools::LogName::MOTION)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+#define LOG_DATA(level, format, ...) LOG.GetLogger(common_tools::LogName::DATA)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+#define LOG_OPTIMIZE(level, format, ...) LOG.GetLogger(common_tools::LogName::OPTIMIZE)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+#define LOG_SLAVE_CONTROL(level, format, ...) LOG.GetLogger(common_tools::LogName::SLAVE_CONTROL)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+#define LOG_CAMERA_TOP(level, format, ...) LOG.GetLogger(common_tools::LogName::CAMERA_TOP)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
 
 #pragma endregion
 
-#pragma region è¿›åº¦æ¡ä¿¡æ¯
+#pragma region ½ø¶ÈÌõĞÅÏ¢£¨ProgressInfo£©
 	struct COMMONTOOLS_API ProgressInfo
 	{
 		bool show_ctrl = false;
@@ -1148,7 +789,530 @@ namespace CommonTools
 		std::string tips_text;
 	};
 #pragma endregion
-}; // namespace CommonTools
 
-// æ¢å¤è­¦å‘ŠçŠ¶æ€ï¼ˆé¿å…å…¨å±€ç¦ç”¨ï¼‰
-#pragma warning(pop)
+#pragma region ¼üÖµ¶ÔÅäÖÃÀà£¨KeyValueMap£©
+	class COMMONTOOLS_API KeyValueMap
+	{
+	public:
+		KeyValueMap();
+
+		KeyValueMap(const KeyValueMap& other);
+
+		KeyValueMap& operator=(const KeyValueMap& other);
+
+		~KeyValueMap();
+
+		// set£º¼ü¡úÇø·Ö´óĞ¡Ğ´
+		void set(const std::string& key, const bool& value);
+
+		void set(const std::string& key, const int& value);
+
+		void set(const std::string& key, const float& value);
+
+		void set(const std::string& key, const double& value);
+
+		void set(const std::string& key, const std::string& value);
+
+		// get£º¼ü¡úÇø·Ö´óĞ¡Ğ´
+		bool get(const std::string& key, bool default_value = false);
+
+		int get(const std::string& key, int default_value = 0);
+
+		float get(const std::string& key, float default_value = 0.0f);
+
+		double get(const std::string& key, double default_value = 0.0);
+
+		std::string get(const std::string& key, const std::string& default_value = "");
+
+		std::string to_string(bool style = false) const; // ĞòÁĞ»¯
+		void from_string(const std::string& str); // ·´ĞòÁĞ»¯
+	private:
+		struct Impl;
+		std::unique_ptr<Impl> impl_;
+		mutable std::mutex mutex_;
+	};
+#pragma endregion
+}; // namespace common_tools
+
+#pragma region »ù´¡Êı¾İ×ª»»Î»Êı¾İ
+namespace bit32_tools //Î»²Ù×÷¹¤¾ß£¨32Î»£©
+{
+	/**
+	 * @brief °´²»Í¬Î»´æ´¢ÖÁÒ»¸öint32±äÁ¿
+	 * @param value ´¢´æ±äÁ¿
+	 * @param bit_idx Î»Ë÷Òı
+	 * @param bit_value Î»Ë÷Òı¶ÔÓ¦µÄÖµ
+	*/
+	void COMMONTOOLS_API Set(int& value, int bit_idx, bool bit_value);
+
+	/**
+	 * @brief ´ÓÒ»¸öint32±äÁ¿ÖĞ»ñÈ¡²»Í¬Î»´¢´æµÄÖµ
+	 * @param value ´¢´æ±äÁ¿
+	 * @param bit_idx Î»Ë÷Òı
+	 * @return Î»Ë÷Òı¶ÔÓ¦µÄÖµ
+	*/
+	bool COMMONTOOLS_API Get(int value, int bit_idx);
+}
+#pragma endregion
+
+#pragma region ×Ö·û´®¹¤¾ß
+namespace string_utils
+{
+	/**
+	 * @brief ×Ö·û´®·Ö¸î
+	 * @param [in] str - ½«Òª·Ö¸îµÄ×Ö·û´®
+	 * @param [in] delimiter - ÓÃÓÚ·Ö¸î×Ö·û´®µÄ·ûºÅ£¬Ö§³Öµ¥¸ö×Ö·û¡£Èç ','
+	 * @param [in] number - ¿ØÖÆ·Ö¸î½á¹ûµÄ×î´óÊıÁ¿
+	 * @return ·Ö¸î½á¹û
+	 **/
+	std::vector<std::string> COMMONTOOLS_API Split(const std::string& str, char delimiter, int pad_number = 0);
+
+	/**
+	 * @brief ×Ö·û´®·Ö¸î
+	 * @param [in] str - ½«Òª·Ö¸îµÄ×Ö·û´®
+	 * @param [in] delimiters - ÓÃÓÚ·Ö¸î×Ö·û´®µÄ·ûºÅ£¬Ö§³Ö×éºÏ×Ö·û¡£Èç ",\\/"
+	 * @param [in] number - ¿ØÖÆ·Ö¸î½á¹ûµÄ×î´óÊıÁ¿£¨=0Ê±£¬²»¿ØÖÆÊıÁ¿£»>0Ê±£¬½öµ±×î´óÊıÁ¿number´óÓÚ·Ö¸î½á¹ûÊıÁ¿Ê±ÓĞĞ§£©
+	 * @return ·Ö¸î½á¹û
+	 **/
+	std::vector<std::string> COMMONTOOLS_API Split(const std::string& str, std::string delimiters, int pad_number = 0);
+
+	/**
+	 * @brief
+	 * @param [in] list - ½«ÒªºÏ²¢µÄ×Ö·û´®ÁĞ±í
+	 * @param [in] delimiter - ÓÃÓÚ·Ö¸î×Ö·û´®µÄ·ûºÅ
+	 * @return ºÏ²¢½á¹û
+	 **/
+	std::string COMMONTOOLS_API Merge(const std::vector<std::string>& list, char delimiter);
+
+	/**
+	 * @brief
+	 * @param [in] list - ½«ÒªºÏ²¢µÄ×Ö·û´®ÁĞ±í
+	 * @param [in] delimiter - ÓÃÓÚ·Ö¸î×Ö·û´®µÄ·ûºÅ
+	 * @return ºÏ²¢½á¹û
+	 **/
+	std::string COMMONTOOLS_API Merge(const std::vector<std::string>& list, std::string delimiters);
+
+	/**
+	 * @brief ×Ö·û´®¸ñÊ½»¯
+	 * @param [in] format - ¸ñÊ½»¯²ÎÊı
+	 * @return ¸ñÊ½»¯½á¹û
+	 **/
+	std::string COMMONTOOLS_API Format(const char* format, ...);
+
+	/**
+	 * @brief ×Ö·û´®¸ñÊ½»¯
+	 * @param [out] out - ¸ñÊ½»¯×Ö·û´®
+	 * @param [in] format - ¸ñÊ½»¯²ÎÊı
+	 * @return ¸ñÊ½»¯½á¹û
+	 **/
+	void COMMONTOOLS_API Format(std::string& out, const char* format, ...);
+
+	/**
+	 * @brief
+	 * @param [in] value - bool£¬short£¬int£¬float£¬doubleµÈ³£¹æÊı¾İÀàĞÍµÄÖµ
+	 * @param [in] precision - ¸¡µãÊıÊ±Ğ¡ÊıÓĞĞ§Î»Êı
+	 * @return ×Ö·û´®ÊıÖµ
+	 **/
+	template <typename T>
+	std::string ToString(const T& value, int precision)
+	{
+		std::ostringstream oss;
+		if (typeid(value) == typeid(float) || typeid(value) == typeid(double) || typeid(value) == typeid(long double))
+		{
+			if (precision > -1)
+				oss << std::setprecision(precision) << value;
+			else
+				oss << value;
+		}
+		else
+			oss << value;
+		return oss.str();
+	}
+
+	/**
+	 * @brief GBK ×ª UTF-8
+	 * @param [in] gbk - ×ª»»Ç° GBK Ô­Ê¼×Ö·û´®
+	 * @return ×ª»»ºó UTF-8 ×Ö·û´®
+	 **/
+	std::string COMMONTOOLS_API G2U(const std::string& gbk);
+
+	/**
+	* @brief UTF-8 ×ª GBK
+	* @param [in] utf8 - ×ª»»Ç° UTF-8 Ô­Ê¼×Ö·û´®
+	* @return ×ª»»ºó GBK ×Ö·û´®
+	**/
+	std::string COMMONTOOLS_API U2G(const std::string& utf8);
+
+	/**
+	* @brief ×Ö·û´®ÒÆ³ı×ó²à¿Õ°××Ö·û
+	* @param [in] str - Ô­Ê¼×Ö·û´®
+	* @return ÒÆ³ıºóµÄ×Ö·û´®
+	**/
+	std::string COMMONTOOLS_API TrimLeft(const std::string& str);
+
+	/**
+	* @brief ×Ö·û´®ÒÆ³ıÓÒ²à¿Õ°××Ö·û
+	* @param [in] str - Ô­Ê¼×Ö·û´®
+	* @return ÒÆ³ıºóµÄ×Ö·û´®
+	**/
+	std::string COMMONTOOLS_API TrimRight(const std::string& str);
+
+	/**
+	* @brief ×Ö·û´®ÒÆ³ıÊ×Î²¿Õ°××Ö·û
+	* @param [in] str - Ô­Ê¼×Ö·û´®
+	* @return ÒÆ³ıºóµÄ×Ö·û´®
+	**/
+	std::string COMMONTOOLS_API Trim(const std::string& str);
+
+	/**
+	* @brief ×Ö·û´®ÒÆ³ıÊ×Î²×Ô¶¨Òå×Ö·û¼¯
+	* @param [in] str - Ô­Ê¼×Ö·û´®
+	* @param [in] chars -
+	* @return ÒÆ³ıºóµÄ×Ö·û´®
+	**/
+	std::string COMMONTOOLS_API Trim(const std::string& str, const std::string& chars);
+
+	/**
+	* @brief ×Ö·û´®´óĞ´
+	* @param [in] str - Ô­Ê¼×Ö·û´®
+	* @return ´óĞ´ºóµÄ×Ö·û´®
+	**/
+	std::string COMMONTOOLS_API ToUpper(const std::string& str);
+
+	/**
+	* @brief ×Ö·û´®Ğ¡Ğ´
+	* @param [in] str - Ô­Ê¼×Ö·û´®
+	* @return Ğ¡Ğ´ºóµÄ×Ö·û´®
+	**/
+	std::string COMMONTOOLS_API ToLower(const std::string& str);
+
+	/**
+	* @brief ×Ö·û´®ÖĞ×Ó´®Ìæ»»
+	* @param [in] str - Ô­Ê¼×Ö·û´®
+	* @param [in] old_str - Ìæ»»Ç°×Ó´®
+	* @param [in] new_str - Ìæ»»ºó×Ó´®
+	* @return ½á¹û×Ö·û´®
+	**/
+	std::string COMMONTOOLS_API Repalce(const std::string& str, const std::string& old_str, const std::string& new_str);
+
+	/**
+	* @brief »ù´¡ÀàĞÍÊı×éÊı¾İÆ´½ÓÎª×Ö·û´®£¨bool£¬int£¬float...£©
+	* @param [in] array - Êı×éÊı¾İ
+	* @param [in] length - Êı×é³¤¶È
+	* @param [in] delimiter - Æ´½Ó·Ö¸ô·û
+	* @return Æ´½Ó×Ö·û´®
+	**/
+	template <typename T>
+	std::string ArrayToString(const T* array, const int& length, const std::string& delimiter)
+	{
+		std::ostringstream oss;
+		for (int i = 0; i < length; ++i)
+		{
+			if (std::is_same<T, bool>::value)
+				oss << static_cast<int>(array[i]);
+			else
+				oss << array[i];
+			if (i < length - 1)
+				oss << delimiter.c_str();
+		}
+		return oss.str();
+	}
+
+	/**
+	* @brief »ù´¡ÀàĞÍÊı×éÊı¾İÆ´½ÓÎª×Ö·û´®£¨×Ô¶¯ÍÆµ¼Êı×é³¤¶È£©
+	* @param [in] array - Êı×éÊı¾İ
+	* @param [in] delimiter - Æ´½Ó·Ö¸ô·û
+	* @return Æ´½Ó×Ö·û´®
+	**/
+	template <typename T, size_t N>
+	std::string ArrayToString(const T (&array)[N], const std::string& delimiter)
+	{
+		return ArrayToString(array, N, delimiter);
+	}
+}
+#pragma endregion
+
+#pragma region ÎÄ¼şÄ¿Â¼²Ù×÷
+namespace file_system
+{
+	/**
+	 * @brief ¼ì²éÎÄ¼ş»òÄ¿Â¼ÊÇ·ñ´æÔÚ
+	 * @param [in] path - ÎÄ¼şÂ·¾¶»òÄ¿Â¼Â·¾¶
+	 * @return ¼ì²é½á¹û
+	 **/
+	bool COMMONTOOLS_API Exists(const std::string& path);
+
+	/**
+	 * @brief ¼ì²éÊÇ·ñÎªÎÄ¼ş
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @return ¼ì²é½á¹û
+	 **/
+	bool COMMONTOOLS_API IsFile(const std::string& path);
+
+	/**
+	 * @brief ´´½¨ÎÄ¼ş
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @return ´´½¨½á¹û
+	 **/
+	bool COMMONTOOLS_API CreateFileX(const std::string& path);
+
+	/**
+	 * @brief ÖØÃüÃûÎÄ¼ş
+	 * @param [in] src_path - Ô­ÎÄ¼şÂ·¾¶
+	 * @param [in] dst_path - ĞÂÎÄ¼şÂ·¾¶
+	 * @return ÖØÃüÃû½á¹û
+	 **/
+	bool COMMONTOOLS_API RenameFile(const std::string& src_path, const std::string& dst_path);
+
+	/**
+	 * @brief ¿½±´ÎÄ¼ş
+	 * @param [in] src_path - Ô­ÎÄ¼şÂ·¾¶
+	 * @param [in] dst_path - ĞÂÎÄ¼şÂ·¾¶
+	 * @return ¿½±´½á¹û
+	 **/
+	bool COMMONTOOLS_API CopyFileX(const std::string& src_path, const std::string& dst_path);
+
+	/**
+	 * @brief ÒÆ¶¯ÎÄ¼ş
+	 * @param [in] src_path - Ô­ÎÄ¼şÂ·¾¶
+	 * @param [in] dst_path - ĞÂÎÄ¼şÂ·¾¶
+	 * @return ÒÆ¶¯½á¹û
+	 **/
+	bool COMMONTOOLS_API MoveFileX(const std::string& src_path, const std::string& dst_path);
+
+	/**
+	 * @brief É¾³ıÎÄ¼ş
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @return É¾³ı½á¹û
+	 **/
+	bool COMMONTOOLS_API DeleteFileX(const std::string& path);
+
+	/**
+	 * @brief »ñÈ¡Ä¿Â¼ÏÂËùÓĞÎÄ¼ş»ò»ñÈ¡Ö¸¶¨¸ñÊ½ÎÄ¼ş
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @param [in] extension - À©Õ¹ÃûÎª¿ÕÊ±£¬»ñÈ¡Ä¿Â¼ÏÂÈ«²¿ÎÄ¼ş£»À©Õ¹Ãû²»Îª¿ÕÊ±£¬»ñÈ¡Ö¸¶¨¸ñÊ½ÎÄ¼ş£¨Èç£º".txt"£©
+	 * @return ÎÄ¼şÁĞ±í½á¹û
+	 **/
+	std::vector<std::string> GetFiles(const std::string& path, const std::string& extension);
+
+	/**
+	 * @brief »ñÈ¡ÎÄ¼ş´óĞ¡£¨×Ö½Úµ¥Î»£©
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @return ÎÄ¼ş´óĞ¡
+	 **/
+	size_t COMMONTOOLS_API GetFileSize(const std::string& path);
+
+	/**
+	 * @brief »ñÈ¡ÎÄ¼ş´´½¨Ê±¼ä
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @return ´´½¨Ê±¼ä
+	 **/
+	time_t COMMONTOOLS_API GetFileCreateTime(const std::string& path);
+
+	/**
+	 * @brief »ñÈ¡ÎÄ¼şĞŞ¸ÄÊ±¼ä
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @return ĞŞ¸ÄÊ±¼ä
+	 **/
+	time_t COMMONTOOLS_API GetFileModifiedTime(const std::string& path);
+
+	/**
+	 * @brief »ñÈ¡ÎÄ¼şÃû£¨²»°üº¬Â·¾¶£©
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @return ÎÄ¼şÃû
+	 **/
+	std::string COMMONTOOLS_API GetFileName(const std::string& path);
+
+	/**
+	 * @brief »ñÈ¡ÎÄ¼şÂ·¾¶£¨²»°üº¬ÎÄ¼şÃû£©
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @return ÎÄ¼şÂ·¾¶
+	 **/
+	std::string COMMONTOOLS_API GetFilePath(const std::string& path);
+
+	/**
+	 * @brief »ñÈ¡ÎÄ¼şÀ©Õ¹Ãû
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @return ÎÄ¼şÀ©Õ¹Ãû
+	 **/
+	std::string COMMONTOOLS_API GetFileExtensionName(const std::string& path);
+
+	/**
+	 * @brief ¼ì²éÊÇ·ñÎªÄ¿Â¼
+	 * @param [in] path - Ä¿Â¼Â·¾¶
+	 * @return ¼ì²é½á¹û
+	 **/
+	bool COMMONTOOLS_API IsDirectory(const std::string& path);
+
+	/**
+	 * @brief Öğ¼¶´´½¨Ä¿Â¼
+	 * @param [in] path - Ä¿Â¼Â·¾¶
+	 * @return ´´½¨½á¹û
+	 **/
+	bool COMMONTOOLS_API CreateDirectorys(const std::string& path);
+
+	/**
+	 * @brief Öğ¼¶É¾³ıÄ¿Â¼
+	 * @param [in] path - Ä¿Â¼Â·¾¶
+	 * @return É¾³ı½á¹û
+	 **/
+	bool COMMONTOOLS_API DeleteDirectorys(const std::string& path);
+
+	/**
+	 * @brief »ñÈ¡Ä¿Â¼ÏÂËùÓĞ×ÓÄ¿Â¼
+	 * @param [in] path - Ä¿Â¼Â·¾¶
+	 * @return Ä¿Â¼ÁĞ±í
+	 **/
+	std::vector<std::string> COMMONTOOLS_API GetDirectorys(const std::string& path);
+
+	/**
+	 * @brief »ñÈ¡ÊµÀıµ±Ç°¹¤×÷Ä¿Â¼
+	 * @param [in] path - Ä¿Â¼Â·¾¶
+	 * @return ¹¤×÷Ä¿Â¼
+	 **/
+	std::string COMMONTOOLS_API GetCurrentWorkDirectory();
+
+	/**
+	 * @brief ÉèÖÃÊµÀıµ±Ç°¹¤×÷Ä¿Â¼
+	 * @param [in] path - Ä¿Â¼Â·¾¶
+	 * @return ÉèÖÃ½á¹û
+	 **/
+	bool COMMONTOOLS_API SetCurrentWorkDirectory(const std::string& path);
+
+	/**
+	 * @brief ¶ÁÈ¡Ö¸¶¨ÎÄ¼şÈ«²¿ÄÚÈİ
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @return ¶ÁÈ¡ÄÚÈİ
+	 **/
+	std::string COMMONTOOLS_API ReadAllText(const std::string& path);
+
+	/**
+	 * @brief È«²¿ÄÚÈİĞ´ÈëÖ¸¶¨ÎÄ¼ş
+	 * @param [in] path - ÎÄ¼şÂ·¾¶
+	 * @return Ğ´Èë½á¹û
+	 **/
+	bool COMMONTOOLS_API WriteAllText(const std::string& path, const std::string& text);
+}
+#pragma endregion
+
+#pragma region ÎÄ¼ş±àÂë¼ì²é
+namespace file_encoding
+{
+	enum class Encoding
+	{
+		GBK, // ANSI ÖĞÎÄ±àÂë
+		UTF8, // UTF-8 ÎŞBOM
+		UTF8_BOM, // UTF-8 ´øBOM
+		UTF16_LE, // Windows Unicode
+		UTF16_BE, // ´ó¶ËUnicode
+		UNKNOWN
+	};
+
+
+	Encoding COMMONTOOLS_API get(const std::string& file_path);
+
+	void COMMONTOOLS_API set(const Encoding& encoding);
+}
+#pragma endregion
+
+//#pragma region WEBÊÓÍ¼
+//namespace web_viewer
+//{
+//	void COMMONTOOLS_API show_web_by_str(const std::string& str, const std::string& web_title = "");
+//
+//	void COMMONTOOLS_API show_web_by_txt(const std::string& file_path, const std::string& web_title = "");
+//
+//	void COMMONTOOLS_API show_web_by_csv(const std::string& file_path, const std::string& web_title = "");
+//
+//	void COMMONTOOLS_API show_web_by_html(const std::string& file_path, const std::string& web_title = "");
+//}
+//#pragma endregion
+
+#pragma region ¸ß¾«¶ÈÊ±¼ä´Á
+namespace timestamp
+{
+	int64_t COMMONTOOLS_API get_current_time_us(); // Î¢Ãë¼¶Ê±¼ä´Á
+	int64_t COMMONTOOLS_API get_current_time_ms(); // ºÁÃë¼¶Ê±¼ä´Á
+	int64_t COMMONTOOLS_API get_current_time_ss(); // Ãë¼¶Ê±¼ä´Á
+
+	int64_t COMMONTOOLS_API get_interval_time_us(int64_t start_us); // »ñÈ¡Î¢Ãë¼¶Ê±¼ä¼ä¸ô¡£ĞÎ²ÎÎª¿ªÊ¼¼ÇÂ¼µÄÎ¢ÃëÊ±¼ä´Á
+	int64_t COMMONTOOLS_API get_interval_time_ms(int64_t start_ms); // »ñÈ¡ºÁÃë¼¶Ê±¼ä¼ä¸ô¡£ĞÎ²ÎÎª¿ªÊ¼¼ÇÂ¼µÄºÁÃëÊ±¼ä´Á
+	int64_t COMMONTOOLS_API get_interval_time_ss(int64_t start_ss); // »ñÈ¡Ãë¼¶Ê±¼ä¼ä¸ô¡£ĞÎ²ÎÎª¿ªÊ¼¼ÇÂ¼µÄÃëÊ±¼ä´Á
+}
+#pragma endregion
+
+#pragma region »ñÈ¡Ãû³Æ/»ñÈ¡ÀàĞÍ
+namespace nameof_detail
+{
+	// »ñÈ¡±äÁ¿Ãû
+	inline const char* get_name(const char* str)
+	{
+		const char* name = str;
+		for (; *str; ++str)
+		{
+			if (*str == '.' || *str == ':' || *str == ' ')
+				name = str + 1;
+		}
+		return name;
+	}
+
+	// »ñÈ¡ÀàĞÍÃû
+	template <typename T>
+	const char* get_type(const T&)
+	{
+		const char* name = typeid(T).name();
+		// STDÀàĞÍ´¦Àí
+		if (strstr(name, "basic_string"))
+			return "string";
+		if (strstr(name, "vector"))
+			return "vector";
+		if (strstr(name, "unordered_map"))
+			return "unordered_map";
+
+		// ×Ô¶¨ÒåÀàĞÍ´¦Àí
+		if (strstr(name, "struct ") == name)
+			name += 7;
+		if (strstr(name, "class ") == name)
+			name += 6;
+
+		return get_name(name);
+	}
+}
+
+
+#define NAMEOF(...) nameof_detail::get_name(#__VA_ARGS__)
+#define TYPEOF(val) nameof_detail::get_type(val)
+
+#pragma endregion
+
+// À©Õ¹C++17/17+²ÅÖ§³ÖµÄ½Ó¿Ú
+#pragma region STD±ê×¼¿â
+namespace std
+{
+	/**
+	 * @brief ÊıÖµ·¶Î§ÏŞÖÆº¯Êı
+	 * @param [in] val - ´ıÏŞÖÆÔ­Ê¼Öµ
+	 * @param [in] lo - Çø¼äÏÂÏŞ
+	 * @param [in] hi - Çø¼äÉÏÏŞ
+	 * @return T ±»ÏŞÖÆÔÚ[lo, hi] ·¶Î§ÄÚµÄÖµ
+	 * @remark Ğè±£Ö¤ lo <= hi£¬·ñÔò½á¹û²»·ûºÏÔ¤ÆÚ
+	 */
+	template <typename T>
+	constexpr T clamp(T val, T lo, T hi)
+	{
+		return val < lo ? lo : (val > hi ? hi : val);
+	}
+
+	/*template <typename T1, typename T2>
+	inline auto safe_min(const T1& a, const T2& b)
+	{
+		return (a < b) ? a : b;
+	}
+
+	template <typename T1, typename T2>
+	inline auto safe_max(const T1& a, const T2& b)
+	{
+		return (a > b) ? a : b;
+	}*/
+}
+#pragma endregion

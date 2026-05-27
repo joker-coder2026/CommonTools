@@ -111,8 +111,9 @@ bool Reader::parse(std::istream& is, Value& root, bool collectComments) {
 
 bool Reader::parse(const char* beginDoc, const char* endDoc, Value& root,
                    bool collectComments) {
-  if (!features_.allowComments_)
-	  collectComments = false;
+  if (!features_.allowComments_) {
+    collectComments = false;
+  }
 
   begin_ = beginDoc;
   end_ = endDoc;
@@ -229,8 +230,9 @@ void Reader::skipCommentTokens(Token& token) {
     do {
       readToken(token);
     } while (token.type_ == tokenComment);
-  } else
-	  readToken(token);
+  } else {
+    readToken(token);
+  }
 }
 
 bool Reader::readToken(Token& token) {
@@ -319,10 +321,8 @@ bool Reader::match(const Char* pattern, int patternLength) {
     return false;
   int index = patternLength;
   while (index--)
-  {
-	  if (current_[index] != pattern[index])
-		  return false;
-  }
+    if (current_[index] != pattern[index])
+      return false;
   current_ += patternLength;
   return true;
 }
@@ -362,8 +362,9 @@ String Reader::normalizeEOL(Reader::Location begin, Reader::Location end) {
         ++current;
       // convert Mac EOL
       normalized += '\n';
-    } else
-	    normalized += c;
+    } else {
+      normalized += c;
+    }
   }
   return normalized;
 }
@@ -375,8 +376,9 @@ void Reader::addComment(Location begin, Location end,
   if (placement == commentAfterOnSameLine) {
     assert(lastValue_ != nullptr);
     lastValue_->setComment(normalized, placement);
-  } else
-	  commentsBefore_ += normalized;
+  } else {
+    commentsBefore_ += normalized;
+  }
 }
 
 bool Reader::readCStyleComment() {
@@ -461,8 +463,9 @@ bool Reader::readObject(Token& token) {
       if (!decodeNumber(tokenName, numberName))
         return recoverFromError(tokenObjectEnd);
       name = numberName.asString();
-    } else
-	    break;
+    } else {
+      break;
+    }
 
     Token colon;
     if (!readToken(colon) || colon.type_ != tokenMemberSeparator) {
@@ -516,8 +519,9 @@ bool Reader::readArray(Token& token) {
     Token currentToken;
     // Accept Comment after last item in the array.
     ok = readToken(currentToken);
-    while (currentToken.type_ == tokenComment && ok)
-	    ok = readToken(currentToken);
+    while (currentToken.type_ == tokenComment && ok) {
+      ok = readToken(currentToken);
+    }
     bool badTokenType = (currentToken.type_ != tokenArraySeparator &&
                          currentToken.type_ != tokenArrayEnd);
     if (!ok || badTokenType) {
@@ -566,8 +570,9 @@ bool Reader::decodeNumber(Token& token, Value& decoded) {
       // c) it's small enough to fit in that rounding delta, we're okay.
       // Otherwise treat this number as a double to avoid overflow.
       if (value > threshold || current != token.end_ ||
-          digit > maxIntegerValue % 10)
-	      return decodeDouble(token, decoded);
+          digit > maxIntegerValue % 10) {
+        return decodeDouble(token, decoded);
+      }
     }
     value = value * 10 + digit;
   }
@@ -602,10 +607,8 @@ bool Reader::decodeDouble(Token& token, Value& decoded) {
     else if (value == std::numeric_limits<double>::lowest())
       value = -std::numeric_limits<double>::infinity();
     else if (!std::isinf(value))
-    {
-	    return addError(
-		    "'" + String(token.start_, token.end_) + "' is not a number.", token);
-    }
+      return addError(
+        "'" + String(token.start_, token.end_) + "' is not a number.", token);
   }
   decoded = value;
   return true;
@@ -668,8 +671,9 @@ bool Reader::decodeString(Token& token, String& decoded) {
       default:
         return addError("Bad escape sequence in string", token, current);
       }
-    } else
-	    decoded += c;
+    } else {
+      decoded += c;
+    }
   }
   return true;
 }
@@ -682,23 +686,19 @@ bool Reader::decodeUnicodeCodePoint(Token& token, Location& current,
   if (unicode >= 0xD800 && unicode <= 0xDBFF) {
     // surrogate pairs
     if (end - current < 6)
-    {
-	    return addError(
-		    "additional six characters expected to parse unicode surrogate pair.",
-		    token, current);
-    }
+      return addError(
+          "additional six characters expected to parse unicode surrogate pair.",
+          token, current);
     if (*(current++) == '\\' && *(current++) == 'u') {
       unsigned int surrogatePair;
-      if (decodeUnicodeEscapeSequence(token, current, end, surrogatePair))
-	      unicode = 0x10000 + ((unicode & 0x3FF) << 10) + (surrogatePair & 0x3FF);
-      else
+      if (decodeUnicodeEscapeSequence(token, current, end, surrogatePair)) {
+        unicode = 0x10000 + ((unicode & 0x3FF) << 10) + (surrogatePair & 0x3FF);
+      } else
         return false;
     } else
-    {
-	    return addError("expecting another \\u token to begin the second half of "
-	                    "a unicode surrogate pair",
-	                    token, current);
-    }
+      return addError("expecting another \\u token to begin the second half of "
+                      "a unicode surrogate pair",
+                      token, current);
   }
   return true;
 }
@@ -707,11 +707,9 @@ bool Reader::decodeUnicodeEscapeSequence(Token& token, Location& current,
                                          Location end,
                                          unsigned int& ret_unicode) {
   if (end - current < 4)
-  {
-	  return addError(
-		  "Bad unicode escape sequence in string: four digits expected.", token,
-		  current);
-  }
+    return addError(
+        "Bad unicode escape sequence in string: four digits expected.", token,
+        current);
   int unicode = 0;
   for (int index = 0; index < 4; ++index) {
     Char c = *current++;
@@ -723,11 +721,9 @@ bool Reader::decodeUnicodeEscapeSequence(Token& token, Location& current,
     else if (c >= 'A' && c <= 'F')
       unicode += c - 'A' + 10;
     else
-    {
-	    return addError(
-		    "Bad unicode escape sequence in string: hexadecimal digit expected.",
-		    token, current);
-    }
+      return addError(
+          "Bad unicode escape sequence in string: hexadecimal digit expected.",
+          token, current);
   }
   ret_unicode = static_cast<unsigned int>(unicode);
   return true;
@@ -811,10 +807,8 @@ String Reader::getFormattedErrorMessages() const {
         "* " + getLocationLineAndColumn(error.token_.start_) + "\n";
     formattedMessage += "  " + error.message_ + "\n";
     if (error.extra_)
-    {
-	    formattedMessage +=
-		    "See " + getLocationLineAndColumn(error.extra_) + " for detail.\n";
-    }
+      formattedMessage +=
+          "See " + getLocationLineAndColumn(error.extra_) + " for detail.\n";
   }
   return formattedMessage;
 }
@@ -1015,8 +1009,9 @@ OurReader::OurReader(OurFeatures const& features) : features_(features) {}
 
 bool OurReader::parse(const char* beginDoc, const char* endDoc, Value& root,
                       bool collectComments) {
-  if (!features_.allowComments_)
-	  collectComments = false;
+  if (!features_.allowComments_) {
+    collectComments = false;
+  }
 
   begin_ = beginDoc;
   end_ = endDoc;
@@ -1155,8 +1150,9 @@ void OurReader::skipCommentTokens(Token& token) {
     do {
       readToken(token);
     } while (token.type_ == tokenComment);
-  } else
-	  readToken(token);
+  } else {
+    readToken(token);
+  }
 }
 
 bool OurReader::readToken(Token& token) {
@@ -1208,17 +1204,17 @@ bool OurReader::readToken(Token& token) {
     readNumber(false);
     break;
   case '-':
-    if (readNumber(true))
-	    token.type_ = tokenNumber;
-    else {
+    if (readNumber(true)) {
+      token.type_ = tokenNumber;
+    } else {
       token.type_ = tokenNegInf;
       ok = features_.allowSpecialFloats_ && match("nfinity", 7);
     }
     break;
   case '+':
-    if (readNumber(true))
-	    token.type_ = tokenNumber;
-    else {
+    if (readNumber(true)) {
+      token.type_ = tokenNumber;
+    } else {
       token.type_ = tokenPosInf;
       ok = features_.allowSpecialFloats_ && match("nfinity", 7);
     }
@@ -1239,15 +1235,17 @@ bool OurReader::readToken(Token& token) {
     if (features_.allowSpecialFloats_) {
       token.type_ = tokenNaN;
       ok = match("aN", 2);
-    } else
-	    ok = false;
+    } else {
+      ok = false;
+    }
     break;
   case 'I':
     if (features_.allowSpecialFloats_) {
       token.type_ = tokenPosInf;
       ok = match("nfinity", 7);
-    } else
-	    ok = false;
+    } else {
+      ok = false;
+    }
     break;
   case ',':
     token.type_ = tokenArraySeparator;
@@ -1293,10 +1291,8 @@ bool OurReader::match(const Char* pattern, int patternLength) {
     return false;
   int index = patternLength;
   while (index--)
-  {
-	  if (current_[index] != pattern[index])
-		  return false;
-  }
+    if (current_[index] != pattern[index])
+      return false;
   current_ += patternLength;
   return true;
 }
@@ -1309,10 +1305,11 @@ bool OurReader::readComment() {
 
   const bool isCStyleComment = (c == '*');
   const bool isCppStyleComment = (c == '/');
-  if (isCStyleComment)
-	  successful = readCStyleComment(&cStyleWithEmbeddedNewline);
-  else if (isCppStyleComment)
-	  successful = readCppStyleComment();
+  if (isCStyleComment) {
+    successful = readCStyleComment(&cStyleWithEmbeddedNewline);
+  } else if (isCppStyleComment) {
+    successful = readCppStyleComment();
+  }
 
   if (!successful)
     return false;
@@ -1347,8 +1344,9 @@ String OurReader::normalizeEOL(OurReader::Location begin,
         ++current;
       // convert Mac EOL
       normalized += '\n';
-    } else
-	    normalized += c;
+    } else {
+      normalized += c;
+    }
   }
   return normalized;
 }
@@ -1360,8 +1358,9 @@ void OurReader::addComment(Location begin, Location end,
   if (placement == commentAfterOnSameLine) {
     assert(lastValue_ != nullptr);
     lastValue_->setComment(normalized, placement);
-  } else
-	  commentsBefore_ += normalized;
+  } else {
+    commentsBefore_ += normalized;
+  }
 }
 
 bool OurReader::readCStyleComment(bool* containsNewLineResult) {
@@ -1469,8 +1468,9 @@ bool OurReader::readObject(Token& token) {
       if (!decodeNumber(tokenName, numberName))
         return recoverFromError(tokenObjectEnd);
       name = numberName.asString();
-    } else
-	    break;
+    } else {
+      break;
+    }
     if (name.length() >= (1U << 30))
       throwRuntimeError("keylength >= 2^30");
     if (features_.rejectDupKeys_ && currentValue().isMember(name)) {
@@ -1534,8 +1534,9 @@ bool OurReader::readArray(Token& token) {
     Token currentToken;
     // Accept Comment after last item in the array.
     ok = readToken(currentToken);
-    while (currentToken.type_ == tokenComment && ok)
-	    ok = readToken(currentToken);
+    while (currentToken.type_ == tokenComment && ok) {
+      ok = readToken(currentToken);
+    }
     bool badTokenType = (currentToken.type_ != tokenArraySeparator &&
                          currentToken.type_ != tokenArrayEnd);
     if (!ok || badTokenType) {
@@ -1564,8 +1565,9 @@ bool OurReader::decodeNumber(Token& token, Value& decoded) {
   // we decode the number as a double.
   Location current = token.start_;
   const bool isNegative = *current == '-';
-  if (isNegative)
-	  ++current;
+  if (isNegative) {
+    ++current;
+  }
 
   // We assume we can represent the largest and smallest integer types as
   // unsigned integers with separate sign. This is only true if they can fit
@@ -1617,8 +1619,9 @@ bool OurReader::decodeNumber(Token& token, Value& decoded) {
       // c) it's small enough to fit in that rounding delta, we're okay.
       // Otherwise treat this number as a double to avoid overflow.
       if (value > threshold || current != token.end_ ||
-          digit > max_last_digit)
-	      return decodeDouble(token, decoded);
+          digit > max_last_digit) {
+        return decodeDouble(token, decoded);
+      }
     }
     value = value * 10 + digit;
   }
@@ -1627,10 +1630,11 @@ bool OurReader::decodeNumber(Token& token, Value& decoded) {
     // We use the same magnitude assumption here, just in case.
     const auto last_digit = static_cast<Value::UInt>(value % 10);
     decoded = -Value::LargestInt(value / 10) * 10 - last_digit;
-  } else if (value <= Value::LargestUInt(Value::maxLargestInt))
-	  decoded = Value::LargestInt(value);
-  else
-	  decoded = value;
+  } else if (value <= Value::LargestUInt(Value::maxLargestInt)) {
+    decoded = Value::LargestInt(value);
+  } else {
+    decoded = value;
+  }
 
   return true;
 }
@@ -1655,10 +1659,8 @@ bool OurReader::decodeDouble(Token& token, Value& decoded) {
     else if (value == std::numeric_limits<double>::lowest())
       value = -std::numeric_limits<double>::infinity();
     else if (!std::isinf(value))
-    {
-	    return addError(
-		    "'" + String(token.start_, token.end_) + "' is not a number.", token);
-    }
+      return addError(
+        "'" + String(token.start_, token.end_) + "' is not a number.", token);
   }
   decoded = value;
   return true;
@@ -1721,8 +1723,9 @@ bool OurReader::decodeString(Token& token, String& decoded) {
       default:
         return addError("Bad escape sequence in string", token, current);
       }
-    } else
-	    decoded += c;
+    } else {
+      decoded += c;
+    }
   }
   return true;
 }
@@ -1735,23 +1738,19 @@ bool OurReader::decodeUnicodeCodePoint(Token& token, Location& current,
   if (unicode >= 0xD800 && unicode <= 0xDBFF) {
     // surrogate pairs
     if (end - current < 6)
-    {
-	    return addError(
-		    "additional six characters expected to parse unicode surrogate pair.",
-		    token, current);
-    }
+      return addError(
+          "additional six characters expected to parse unicode surrogate pair.",
+          token, current);
     if (*(current++) == '\\' && *(current++) == 'u') {
       unsigned int surrogatePair;
-      if (decodeUnicodeEscapeSequence(token, current, end, surrogatePair))
-	      unicode = 0x10000 + ((unicode & 0x3FF) << 10) + (surrogatePair & 0x3FF);
-      else
+      if (decodeUnicodeEscapeSequence(token, current, end, surrogatePair)) {
+        unicode = 0x10000 + ((unicode & 0x3FF) << 10) + (surrogatePair & 0x3FF);
+      } else
         return false;
     } else
-    {
-	    return addError("expecting another \\u token to begin the second half of "
-	                    "a unicode surrogate pair",
-	                    token, current);
-    }
+      return addError("expecting another \\u token to begin the second half of "
+                      "a unicode surrogate pair",
+                      token, current);
   }
   return true;
 }
@@ -1760,11 +1759,9 @@ bool OurReader::decodeUnicodeEscapeSequence(Token& token, Location& current,
                                             Location end,
                                             unsigned int& ret_unicode) {
   if (end - current < 4)
-  {
-	  return addError(
-		  "Bad unicode escape sequence in string: four digits expected.", token,
-		  current);
-  }
+    return addError(
+        "Bad unicode escape sequence in string: four digits expected.", token,
+        current);
   int unicode = 0;
   for (int index = 0; index < 4; ++index) {
     Char c = *current++;
@@ -1776,11 +1773,9 @@ bool OurReader::decodeUnicodeEscapeSequence(Token& token, Location& current,
     else if (c >= 'A' && c <= 'F')
       unicode += c - 'A' + 10;
     else
-    {
-	    return addError(
-		    "Bad unicode escape sequence in string: hexadecimal digit expected.",
-		    token, current);
-    }
+      return addError(
+          "Bad unicode escape sequence in string: hexadecimal digit expected.",
+          token, current);
   }
   ret_unicode = static_cast<unsigned int>(unicode);
   return true;
@@ -1859,10 +1854,8 @@ String OurReader::getFormattedErrorMessages() const {
         "* " + getLocationLineAndColumn(error.token_.start_) + "\n";
     formattedMessage += "  " + error.message_ + "\n";
     if (error.extra_)
-    {
-	    formattedMessage +=
-		    "See " + getLocationLineAndColumn(error.extra_) + " for detail.\n";
-    }
+      formattedMessage +=
+          "See " + getLocationLineAndColumn(error.extra_) + " for detail.\n";
   }
   return formattedMessage;
 }
@@ -1889,8 +1882,9 @@ public:
   bool parse(char const* beginDoc, char const* endDoc, Value* root,
              String* errs) override {
     bool ok = reader_.parse(beginDoc, endDoc, *root, collectComments_);
-    if (errs)
-	    *errs = reader_.getFormattedErrorMessages();
+    if (errs) {
+      *errs = reader_.getFormattedErrorMessages();
+    }
     return ok;
   }
 };
@@ -2001,8 +1995,9 @@ IStream& operator>>(IStream& sin, Value& root) {
   CharReaderBuilder b;
   String errs;
   bool ok = parseFromStream(b, sin, &root, &errs);
-  if (!ok)
-	  throwRuntimeError(errs);
+  if (!ok) {
+    throwRuntimeError(errs);
+  }
   return sin;
 }
 
