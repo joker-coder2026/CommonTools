@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="源文件">
@@ -13,11 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="头文件\jsoncpp">
-      <UniqueIdentifier>{80489557-a8c0-40b2-a3fb-3eaf582db4db}</UniqueIdentifier>
-    </Filter>
     <Filter Include="源文件\jsoncpp">
       <UniqueIdentifier>{4cfe8da7-efa6-4833-a30f-354eab1023b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\jsoncpp">
+      <UniqueIdentifier>{a1cfe8da-efa6-4833-a30f-354eab1023c0}</UniqueIdentifier>
     </Filter>
     <Filter Include="头文件\sqlite3">
       <UniqueIdentifier>{536e9606-a8c1-4527-8bfc-fd964d39349e}</UniqueIdentifier>
@@ -31,86 +31,161 @@
     <Filter Include="头文件\tinyxml2">
       <UniqueIdentifier>{9e28398d-183c-4aa2-a806-7d22f9c34103}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\inicpp">
-      <UniqueIdentifier>{117cc24a-3dd1-4eb8-b15b-48e0b00e49ff}</UniqueIdentifier>
-    </Filter>
     <Filter Include="源文件\tinyxml2">
       <UniqueIdentifier>{f7b96ad5-5a8c-4abd-ad4a-adf6275e53ea}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="jsoncpp\json\allocator.h">
-      <Filter>头文件\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\json\assertions.h">
-      <Filter>头文件\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\json\config.h">
-      <Filter>头文件\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\json\forwards.h">
-      <Filter>头文件\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\json\json.h">
-      <Filter>头文件\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\json\json_features.h">
-      <Filter>头文件\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\json\reader.h">
-      <Filter>头文件\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\json\value.h">
-      <Filter>头文件\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\json\version.h">
-      <Filter>头文件\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\json\writer.h">
-      <Filter>头文件\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="jsoncpp\json_tool.h">
-      <Filter>头文件\jsoncpp</Filter>
-    </ClInclude>
-    <ClInclude Include="sqlite3\sqlite3.h">
-      <Filter>头文件\sqlite3</Filter>
-    </ClInclude>
-    <ClInclude Include="sqlite3\sqlite3ext.h">
-      <Filter>头文件\sqlite3</Filter>
-    </ClInclude>
     <ClInclude Include="CommonTools.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="inicpp\inicpp.hpp">
+    <ClInclude Include="src\common_export.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ini_manager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\xml_manager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\json_manager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sqlite_manager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\config_custom.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\logger.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\progress_info.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\key_value_map.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\bit_tools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\string_utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\file_system.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\file_encoding.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\timestamp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nameof.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\jsoncpp\json\allocator.h">
+      <Filter>头文件\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\jsoncpp\json\assertions.h">
+      <Filter>头文件\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\jsoncpp\json\config.h">
+      <Filter>头文件\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\jsoncpp\json\forwards.h">
+      <Filter>头文件\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\jsoncpp\json\json.h">
+      <Filter>头文件\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\jsoncpp\json\json_features.h">
+      <Filter>头文件\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\jsoncpp\json\reader.h">
+      <Filter>头文件\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\jsoncpp\json\value.h">
+      <Filter>头文件\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\jsoncpp\json\version.h">
+      <Filter>头文件\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\jsoncpp\json\writer.h">
+      <Filter>头文件\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\jsoncpp\json_tool.h">
+      <Filter>头文件\jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\sqlite3\sqlite3.h">
+      <Filter>头文件\sqlite3</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\sqlite3\sqlite3ext.h">
+      <Filter>头文件\sqlite3</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\inicpp\inicpp.hpp">
       <Filter>头文件\inicpp</Filter>
     </ClInclude>
-    <ClInclude Include="tinyxml2\tinyxml2.h">
+    <ClInclude Include="third_party\tinyxml2\tinyxml2.h">
       <Filter>头文件\tinyxml2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CommonTools.cpp">
+    <ClCompile Include="src\ini_manager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="jsoncpp\json_reader.cpp">
+    <ClCompile Include="src\xml_manager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\json_manager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sqlite_manager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\config_custom.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\logger.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\key_value_map.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bit_tools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\string_utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\file_system.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\file_encoding.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\timestamp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\jsoncpp\json_reader.cpp">
       <Filter>源文件\jsoncpp</Filter>
     </ClCompile>
-    <ClCompile Include="jsoncpp\json_value.cpp">
+    <ClCompile Include="third_party\jsoncpp\json_value.cpp">
       <Filter>源文件\jsoncpp</Filter>
     </ClCompile>
-    <ClCompile Include="jsoncpp\json_writer.cpp">
+    <ClCompile Include="third_party\jsoncpp\json_writer.cpp">
       <Filter>源文件\jsoncpp</Filter>
     </ClCompile>
-    <ClCompile Include="sqlite3\sqlite3.c">
+    <ClCompile Include="third_party\sqlite3\sqlite3.c">
       <Filter>源文件\sqlite3</Filter>
     </ClCompile>
-    <ClCompile Include="tinyxml2\tinyxml2.cpp">
+    <ClCompile Include="third_party\tinyxml2\tinyxml2.cpp">
       <Filter>源文件\tinyxml2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="jsoncpp\json_valueiterator.inl">
-      <Filter>头文件\jsoncpp</Filter>
+    <None Include="third_party\jsoncpp\json_valueiterator.inl">
+      <Filter>源文件\jsoncpp</Filter>
     </None>
   </ItemGroup>
 </Project>

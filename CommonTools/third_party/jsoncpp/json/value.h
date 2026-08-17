@@ -561,6 +561,7 @@ public:
   /// \pre type() is objectValue or nullValue
   /// \post if type() was nullValue, it remains nullValue
   Members getMemberNames() const;
+  Members getMemberNames(bool sorted) const;
 
   /// \deprecated Always pass len.
   JSONCPP_DEPRECATED("Use setComment(String const&) instead.")
@@ -669,6 +670,8 @@ private:
   // was extracted.
   ptrdiff_t start_;
   ptrdiff_t limit_;
+
+  std::vector<String> memberInsertOrder_;
 };
 
 template <> inline bool Value::as<bool>() const { return asBool(); }

@@ -1049,6 +1049,7 @@ Value& Value::resolveReference(const char* key) {
 
   ObjectValues::value_type defaultValue(actualKey, nullSingleton());
   it = value_.map_->insert(it, defaultValue);
+  memberInsertOrder_.push_back(String(key, static_cast<unsigned>(strlen(key))));
   Value& value = (*it).second;
   return value;
 }
@@ -1068,6 +1069,7 @@ Value& Value::resolveReference(char const* key, char const* end) {
 
   ObjectValues::value_type defaultValue(actualKey, nullSingleton());
   it = value_.map_->insert(it, defaultValue);
+  memberInsertOrder_.push_back(String(key, static_cast<unsigned>(end - key)));
   Value& value = (*it).second;
   return value;
 }
@@ -1231,19 +1233,28 @@ bool Value::isMember(String const& key) const {
 }
 
 Value::Members Value::getMemberNames() const {
+  return getMemberNames(true);
+}
+
+Value::Members Value::getMemberNames(bool sorted) const {
   JSON_ASSERT_MESSAGE(
       type() == nullValue || type() == objectValue,
       "in Json::Value::getMemberNames(), value must be objectValue");
   if (type() == nullValue)
     return Value::Members();
-  Members members;
-  members.reserve(value_.map_->size());
-  ObjectValues::const_iterator it = value_.map_->begin();
-  ObjectValues::const_iterator itEnd = value_.map_->end();
-  for (; it != itEnd; ++it) {
-    members.push_back(String((*it).first.data(), (*it).first.length()));
+  
+  if (sorted) {
+    Members members;
+    members.reserve(value_.map_->size());
+    ObjectValues::const_iterator it = value_.map_->begin();
+    ObjectValues::const_iterator itEnd = value_.map_->end();
+    for (; it != itEnd; ++it) {
+      members.push_back(String((*it).first.data(), (*it).first.length()));
+    }
+    return members;
+  } else {
+    return memberInsertOrder_;
   }
-  return members;
 }
 
 static bool IsIntegral(double d) {

@@ -880,7 +880,7 @@ struct BuiltStyledStreamWriter : public StreamWriter {
                           String colonSymbol, String nullSymbol,
                           String endingLineFeedSymbol, bool useSpecialFloats,
                           bool emitUTF8, unsigned int precision,
-                          PrecisionType precisionType);
+                          PrecisionType precisionType, bool sortKeys);
   int write(Value const& root, OStream* sout) override;
 
 private:
@@ -910,19 +910,21 @@ private:
   bool indented_ : 1;
   bool useSpecialFloats_ : 1;
   bool emitUTF8_ : 1;
+  bool sortKeys_ : 1;
   unsigned int precision_;
   PrecisionType precisionType_;
 };
 BuiltStyledStreamWriter::BuiltStyledStreamWriter(
     String indentation, CommentStyle::Enum cs, String colonSymbol,
     String nullSymbol, String endingLineFeedSymbol, bool useSpecialFloats,
-    bool emitUTF8, unsigned int precision, PrecisionType precisionType)
+    bool emitUTF8, unsigned int precision, PrecisionType precisionType,
+    bool sortKeys)
     : rightMargin_(74), indentation_(std::move(indentation)), cs_(cs),
       colonSymbol_(std::move(colonSymbol)), nullSymbol_(std::move(nullSymbol)),
       endingLineFeedSymbol_(std::move(endingLineFeedSymbol)),
       addChildValues_(false), indented_(false),
       useSpecialFloats_(useSpecialFloats), emitUTF8_(emitUTF8),
-      precision_(precision), precisionType_(precisionType) {}
+      sortKeys_(sortKeys), precision_(precision), precisionType_(precisionType) {}
 int BuiltStyledStreamWriter::write(Value const& root, OStream* sout) {
   sout_ = sout;
   addChildValues_ = false;
@@ -972,7 +974,7 @@ void BuiltStyledStreamWriter::writeValue(Value const& value) {
     writeArrayValue(value);
     break;
   case objectValue: {
-    Value::Members members(value.getMemberNames());
+    Value::Members members(value.getMemberNames(sortKeys_));
     if (members.empty())
       pushValue("{}");
     else {
@@ -1167,6 +1169,7 @@ StreamWriter* StreamWriterBuilder::newStreamWriter() const {
   const bool dnp = settings_["dropNullPlaceholders"].asBool();
   const bool usf = settings_["useSpecialFloats"].asBool();
   const bool emitUTF8 = settings_["emitUTF8"].asBool();
+  const bool sortKeys = settings_["sortKeys"].asBool();
   unsigned int pre = settings_["precision"].asUInt();
   CommentStyle::Enum cs = CommentStyle::All;
   if (cs_str == "All") {
@@ -1199,7 +1202,7 @@ StreamWriter* StreamWriterBuilder::newStreamWriter() const {
   String endingLineFeedSymbol;
   return new BuiltStyledStreamWriter(indentation, cs, colonSymbol, nullSymbol,
                                      endingLineFeedSymbol, usf, emitUTF8, pre,
-                                     precisionType);
+                                     precisionType, sortKeys);
 }
 
 bool StreamWriterBuilder::validate(Json::Value* invalid) const {
@@ -1212,6 +1215,7 @@ bool StreamWriterBuilder::validate(Json::Value* invalid) const {
       "emitUTF8",
       "precision",
       "precisionType",
+      "sortKeys",
   };
   for (auto si = settings_.begin(); si != settings_.end(); ++si) {
     auto key = si.name();
@@ -1239,6 +1243,7 @@ void StreamWriterBuilder::setDefaults(Json::Value* settings) {
   (*settings)["emitUTF8"] = false;
   (*settings)["precision"] = 17;
   (*settings)["precisionType"] = "significant";
+  (*settings)["sortKeys"] = true;
   //! [StreamWriterBuilderDefaults]
 }
 

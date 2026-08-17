@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- CommonTools 静态库通用配置 -->
+  <!-- 所有引用 CommonTools 的项目只需导入此属性表即可 -->
+
+  <ItemDefinitionGroup>
+    <!-- 包含目录：统一 include 目录 -->
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)CommonTools;$(SolutionDir)CommonTools\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+
+    <!-- 库目录：统一 lib 目录 -->
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>CommonTools.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+</Project>
