@@ -26,7 +26,7 @@ namespace common_tools
 		 * @return 转换后的字符串
 		 **/
 		template <typename T>
-		std::string ToString(const T& value)
+		std::string to_string(const T& value)
 		{
 			std::ostringstream oss;
 			if (typeid(value) == typeid(float))
@@ -45,7 +45,7 @@ namespace common_tools
 		 * @return 转换后的值
 		 **/
 		template <typename T>
-		T FromString(const std::string& str, const T& default_value)
+		T from_string(const std::string& str, const T& default_value)
 		{
 			if (str.empty())
 				return default_value;
@@ -87,7 +87,7 @@ namespace common_tools
 		 * @param [in] value - 值
 		 * @return 写入是否成功
 		 **/
-		bool WriteValue(const std::string& section, const std::string& key, const std::string& value);
+		bool write_value(const std::string& section, const std::string& key, const std::string& value);
 
 		/**
 		 * @brief 读取字符串值
@@ -96,7 +96,7 @@ namespace common_tools
 		 * @param [in] default_value - 读取失败时的默认值
 		 * @return 读取到的值
 		 **/
-		std::string ReadValue(const std::string& section, const std::string& key, const std::string& default_value);
+		std::string read_value(const std::string& section, const std::string& key, const std::string& default_value);
 
 		/**
 		 * @brief 写入整数值
@@ -105,7 +105,7 @@ namespace common_tools
 		 * @param [in] value - 整数值
 		 * @return 写入是否成功
 		 **/
-		bool WriteInt(const std::string& section, const std::string& key, int value);
+		bool write_int(const std::string& section, const std::string& key, int value);
 
 		/**
 		 * @brief 写入布尔值
@@ -114,7 +114,7 @@ namespace common_tools
 		 * @param [in] value - 布尔值
 		 * @return 写入是否成功
 		 **/
-		bool WriteBool(const std::string& section, const std::string& key, bool value);
+		bool write_bool(const std::string& section, const std::string& key, bool value);
 
 		/**
 		 * @brief 写入双精度浮点值
@@ -123,7 +123,7 @@ namespace common_tools
 		 * @param [in] value - 双精度值
 		 * @return 写入是否成功
 		 **/
-		bool WriteDouble(const std::string& section, const std::string& key, double value);
+		bool write_double(const std::string& section, const std::string& key, double value);
 
 		/**
 		 * @brief 读取整数值
@@ -132,7 +132,7 @@ namespace common_tools
 		 * @param [in] default_value - 默认值（默认 0）
 		 * @return 读取到的整数值
 		 **/
-		int ReadInt(const std::string& section, const std::string& key, int default_value = 0);
+		int read_int(const std::string& section, const std::string& key, int default_value = 0);
 
 		/**
 		 * @brief 读取布尔值
@@ -141,7 +141,7 @@ namespace common_tools
 		 * @param [in] default_value - 默认值（默认 false）
 		 * @return 读取到的布尔值
 		 **/
-		bool ReadBool(const std::string& section, const std::string& key, bool default_value = false);
+		bool read_bool(const std::string& section, const std::string& key, bool default_value = false);
 
 		/**
 		 * @brief 读取双精度浮点值
@@ -150,7 +150,7 @@ namespace common_tools
 		 * @param [in] default_value - 默认值（默认 0.0）
 		 * @return 读取到的双精度值
 		 **/
-		double ReadDouble(const std::string& section, const std::string& key, double default_value = 0.0);
+		double read_double(const std::string& section, const std::string& key, double default_value = 0.0);
 
 		/**
 		 * @brief 读取整个节的所有键值对
@@ -165,7 +165,7 @@ namespace common_tools
 		 * @param [in] keyValues - 键值对集合
 		 * @return 写入是否成功
 		 **/
-		bool WriteSection(const std::string& section, const std::map<std::string, std::string>& keyValues);
+		bool write_section(const std::string& section, const std::map<std::string, std::string>& keyValues);
 
 		/**
 		 * @brief 删除指定键
@@ -173,34 +173,34 @@ namespace common_tools
 		 * @param [in] key - 键名
 		 * @return 删除是否成功
 		 **/
-		bool DeleteKey(const std::string& section, const std::string& key);
+		bool delete_key(const std::string& section, const std::string& key);
 
 		/**
 		 * @brief 删除整个节
 		 * @param [in] section - 节名
 		 * @return 删除是否成功
 		 **/
-		bool DeleteSection(const std::string& section);
+		bool delete_section(const std::string& section);
 
 		/**
 		 * @brief 检查 INI 文件是否存在
 		 * @return 存在返回 true
 		 **/
-		bool FileExists();
+		bool file_exists();
 
 		/**
 		 * @brief 备份 INI 文件（复制为 .bak 文件）
 		 * @param [in] backupPath - 备份路径；为空时自动生成 "<原文件名>.bak<扩展名>"
 		 * @return 备份是否成功
 		 **/
-		bool BackupFile(const std::string& backupPath);
+		bool backup_file(const std::string& backupPath);
 
 		/**
 		 * @brief 检查节是否存在
 		 * @param [in] section - 节名
 		 * @return 存在返回 true
 		 **/
-		bool SectionExists(const std::string& section);
+		bool section_exists(const std::string& section);
 
 		/**
 		 * @brief 检查键是否存在
@@ -208,30 +208,30 @@ namespace common_tools
 		 * @param [in] key - 键名
 		 * @return 存在返回 true
 		 **/
-		bool KeyExists(const std::string& section, const std::string& key);
+		bool key_exists(const std::string& section, const std::string& key);
 
 		/**
 		 * @brief 获取文件中所有节名
 		 * @return 节名列表
 		 **/
-		std::vector<std::string> GetSectionNames();
+		std::vector<std::string> get_section_names();
 
 		/**
 		 * @brief 获取指定节下所有键名
 		 * @param [in] section - 节名
 		 * @return 键名列表
 		 **/
-		std::vector<std::string> GetKeyNames(const std::string& section);
+		std::vector<std::string> get_key_names(const std::string& section);
 
 		/**
 		 * @brief 获取最近一次操作的错误信息
 		 * @return 错误描述（无错误时为空串）
 		 **/
-		std::string GetLastError();
+		std::string get_last_error();
 
 	private:
 		/** @brief 记录最近一次操作的错误信息 */
-		void SetLastError(const std::string& error);
+		void set_last_error(const std::string& error);
 
 		std::string file_path_; // INI 文件路径
 		std::string last_error_; // 最近错误信息

@@ -1,7 +1,7 @@
 ﻿#pragma once
 // ============================================================================
 // 日志管理类(LoggerManager)：LogName / LogLevel / LogOutput / Logger / LogDbManager / LoggerManager
-// 基于 spdlog 封装的多日志器管理：支持控制台/文件/GUI 回调/VS Trace/Tracer 输出、
+// 基于 spdlog 封装的多日志器管理：支持控制台/文件/GUI 回调/VS trace/Tracer 输出、
 // 级别过滤、文件滚动、日志落库（SQLite，按日期分库）与过期日志自动清理。
 // 通过 LOG 宏访问单例：LOG_MOUNT(LogLevel::Info, "...", ...)
 // ============================================================================
@@ -42,7 +42,7 @@ namespace common_tools
 
 	/**
 	 * @brief 日志级别枚举（对应 spdlog::level::level_enum）
-	 * InfoRed/InfoGreen/InfoBlack 为带颜色的 Info 级别
+	 * InfoRed/InfoGreen/InfoBlack 为带颜色的 info 级别
 	 **/
 	enum class COMMONTOOLS_API LogLevel
 	{
@@ -167,75 +167,75 @@ namespace common_tools
 		 * @brief 初始化日志器（设置级别并初始化 spdlog 线程池）
 		 * @return 初始化是否成功
 		 **/
-		bool Initialize();
+		bool initialize();
 
 		/**
 		 * @brief 检查日志器是否已初始化
 		 * @return 已初始化返回 true
 		 **/
-		bool IsInitialized() const;
+		bool is_initialized() const;
 
 		/** @brief 刷新所有输出目标（落盘） */
-		void Flush();
+		void flush();
 
 		/** @brief 关闭日志器（置为未初始化，不清理 spdlog 全局状态） */
-		void Shutdown();
+		void shutdown();
 
 		/**
 		 * @brief 获取日志器配置引用（可修改后重新生效）
 		 * @return 配置引用
 		 **/
-		Config& GetConfig();
+		Config& get_config();
 
 		/**
 		 * @brief 注册输出目标回调（Gui/VsTrace/Tracer 等目标由回调接收消息）
 		 * @param [in] type - 输出目标类型
 		 * @param [in] callback - 回调函数（接收 MetaMsg）
 		 **/
-		void SetOutputCallback(LogOutput type, const std::function<void(const MetaMsg&)>& callback);
+		void set_output_callback(LogOutput type, const std::function<void(const MetaMsg&)>& callback);
 
-		/** @brief 记录 Trace 级日志（printf 风格） */
-		void Trace(const char* format, ...);
+		/** @brief 记录 trace 级日志（printf 风格） */
+		void trace(const char* format, ...);
 
-		/** @brief 记录 Debug 级日志（printf 风格） */
-		void Debug(const char* format, ...);
+		/** @brief 记录 debug 级日志（printf 风格） */
+		void debug(const char* format, ...);
 
-		/** @brief 记录 Info 级日志（printf 风格） */
-		void Info(const char* format, ...);
+		/** @brief 记录 info 级日志（printf 风格） */
+		void info(const char* format, ...);
 
-		/** @brief 记录 Warn 级日志（printf 风格） */
-		void Warn(const char* format, ...);
+		/** @brief 记录 warn 级日志（printf 风格） */
+		void warn(const char* format, ...);
 
-		/** @brief 记录 Error 级日志（printf 风格） */
-		void Error(const char* format, ...);
+		/** @brief 记录 error 级日志（printf 风格） */
+		void error(const char* format, ...);
 
-		/** @brief 记录 Critical 级日志（printf 风格） */
-		void Critical(const char* format, ...);
+		/** @brief 记录 critical 级日志（printf 风格） */
+		void critical(const char* format, ...);
 
 		/**
 		 * @brief 按指定级别记录日志（printf 风格）
 		 * @param [in] level - 日志级别
 		 * @param [in] format - 格式串
 		 **/
-		void LogRecord(LogLevel level, const char* format, ...);
+		void log_record(LogLevel level, const char* format, ...);
 
-		/** @brief 带文件/行号/函数名的 Trace 级日志 */
-		void Trace(const char* file, int line, const char* function, const char* format, ...);
+		/** @brief 带文件/行号/函数名的 trace 级日志 */
+		void trace(const char* file, int line, const char* function, const char* format, ...);
 
-		/** @brief 带文件/行号/函数名的 Debug 级日志 */
-		void Debug(const char* file, int line, const char* function, const char* format, ...);
+		/** @brief 带文件/行号/函数名的 debug 级日志 */
+		void debug(const char* file, int line, const char* function, const char* format, ...);
 
-		/** @brief 带文件/行号/函数名的 Info 级日志 */
-		void Info(const char* file, int line, const char* function, const char* format, ...);
+		/** @brief 带文件/行号/函数名的 info 级日志 */
+		void info(const char* file, int line, const char* function, const char* format, ...);
 
-		/** @brief 带文件/行号/函数名的 Warn 级日志 */
-		void Warn(const char* file, int line, const char* function, const char* format, ...);
+		/** @brief 带文件/行号/函数名的 warn 级日志 */
+		void warn(const char* file, int line, const char* function, const char* format, ...);
 
-		/** @brief 带文件/行号/函数名的 Error 级日志 */
-		void Error(const char* file, int line, const char* function, const char* format, ...);
+		/** @brief 带文件/行号/函数名的 error 级日志 */
+		void error(const char* file, int line, const char* function, const char* format, ...);
 
-		/** @brief 带文件/行号/函数名的 Critical 级日志 */
-		void Critical(const char* file, int line, const char* function, const char* format, ...);
+		/** @brief 带文件/行号/函数名的 critical 级日志 */
+		void critical(const char* file, int line, const char* function, const char* format, ...);
 
 		/**
 		 * @brief 带文件/行号/函数名按级别记录日志
@@ -245,29 +245,29 @@ namespace common_tools
 		 * @param [in] level - 日志级别
 		 * @param [in] format - 格式串
 		 **/
-		void LogRecord(const char* file, int line, const char* function, LogLevel level, const char* format, ...);
+		void log_record(const char* file, int line, const char* function, LogLevel level, const char* format, ...);
 
 	private:
 		/** @brief 获取（或创建）对应输出组合的缓存 spdlog logger */
-		std::shared_ptr<spdlog::logger> GetCachedLogger(LogOutput outputs);
+		std::shared_ptr<spdlog::logger> get_cached_logger(LogOutput outputs);
 
 		/** @brief 按输出组合创建临时 spdlog logger（含文件滚动） */
-		std::shared_ptr<spdlog::logger> CreateTempLogger(LogOutput outputs);
+		std::shared_ptr<spdlog::logger> create_temp_logger(LogOutput outputs);
 
 		/** @brief 格式化日志消息（时间/线程/级别/文件行号）并触发回调 */
-		std::string FormatLogMessage(LogOutput outputs, LogLevel level, const char* file, int line,
+		std::string format_log_message(LogOutput outputs, LogLevel level, const char* file, int line,
 		                             const char* function, const char* message);
 
 		/** @brief 核心写日志入口（路由到 spdlog 输出） */
-		void Log(LogLevel level, const char* file, int line, const char* function, const char* message);
+		void log(LogLevel level, const char* file, int line, const char* function, const char* message);
 
 		/** @brief 检查输出组合是否有效（目标是否已注册回调等） */
-		bool HasValidOutput(LogOutput outputs) const;
+		bool has_valid_output(LogOutput outputs) const;
 
 		class CustomSink;
 
 		/** @brief 创建自定义 spdlog sink（回调分发） */
-		std::shared_ptr<CustomSink> CreateCustomSink(const std::function<void(const MetaMsg&)>& callback);
+		std::shared_ptr<CustomSink> create_custom_sink(const std::function<void(const MetaMsg&)>& callback);
 
 		Config config_; // 日志器配置
 
@@ -294,22 +294,22 @@ namespace common_tools
 		 * @brief 获取单例实例
 		 * @return 全局唯一实例
 		 **/
-		static LogDbManager& GetInstance();
+		static LogDbManager& get_instance();
 
 		/**
 		 * @brief 初始化（启动后台写库线程）
 		 * @return 是否成功
 		 **/
-		bool Init();
+		bool init();
 
 		/** @brief 退出（通知线程结束并关闭数据库） */
-		void Exit();
+		void exit();
 
 		/**
 		 * @brief 将日志消息加入写库队列（异步）
 		 * @param [in] msg - 日志消息元数据
 		 **/
-		void AddMsgToQueue(const Logger::MetaMsg& msg);
+		void add_msg_to_queue(const Logger::MetaMsg& msg);
 
 	private:
 		LogDbManager() = default;
@@ -317,7 +317,7 @@ namespace common_tools
 		~LogDbManager() = default;
 
 		/** @brief 后台工作线程：批量写库 */
-		void WorkerThread();
+		void worker_thread();
 
 		std::atomic<bool> is_running_{false}; // 运行标志
 		std::mutex queue_mutex_; // 队列锁
@@ -342,20 +342,20 @@ namespace common_tools
 		 * @brief 获取单例实例
 		 * @return 全局唯一实例
 		 **/
-		static LoggerManager& GetInstance();
+		static LoggerManager& get_instance();
 
 		/**
 		 * @brief 获取指定名称的日志器（不存在时返回默认日志器）
 		 * @param [in] name - 日志器名称
 		 * @return 日志器共享指针
 		 **/
-		std::shared_ptr<Logger> GetLogger(const LogName& name);
+		std::shared_ptr<Logger> get_logger(const LogName& name);
 
 		/**
 		 * @brief 获取所有已注册日志器名称（不含默认）
 		 * @return 日志器名称列表
 		 **/
-		std::vector<LogName> LoggerNames() const;
+		std::vector<LogName> logger_names() const;
 
 	private:
 		LoggerManager();
@@ -367,13 +367,13 @@ namespace common_tools
 		LoggerManager& operator=(const LoggerManager&) = delete;
 
 		/** @brief 按名称创建日志器并注册 */
-		bool createLogger(const LogName& name);
+		bool create_logger(const LogName& name);
 
 		/** @brief 按配置创建日志器并注册 */
-		bool createLogger(const Logger::Config& config);
+		bool create_logger(const Logger::Config& config);
 
 		/** @brief 日志器名称转字符串（用于日志文件名） */
-		std::string LogNameToStr(const LogName& name);
+		std::string log_name_to_str(const LogName& name);
 
 	public:
 		/**
@@ -381,11 +381,11 @@ namespace common_tools
 		 * @param [in] path - 目录路径
 		 * @param [in] days - 保留天数（<=0 时移除该规则）
 		 **/
-		void AddCleanupDirectory(const std::string& path, int days);
+		void add_cleanup_directory(const std::string& path, int days);
 
 	private:
 		/** @brief 后台清理线程：按规则删除过期日志文件 */
-		void CleanupThread();
+		void cleanup_thread();
 
 		std::unordered_map<LogName, std::shared_ptr<Logger>> loggers_; // 日志器映射
 		mutable std::mutex logger_mutex_; // 日志器表锁
@@ -398,18 +398,18 @@ namespace common_tools
 
 
 	//TODO:如何区分模组，不同相机类型
-/** @brief 全局日志管理器单例宏：LOG.GetLogger(LogName::XXX)->Info(...) */
-#define LOG common_tools::LoggerManager::GetInstance()
+/** @brief 全局日志管理器单例宏：LOG.get_logger(LogName::XXX)->info(...) */
+#define LOG common_tools::LoggerManager::get_instance()
 /** @brief 装配模块日志宏 */
-#define LOG_MOUNT(level, format, ...) LOG.GetLogger(LogName::MOUNT)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+#define LOG_MOUNT(level, format, ...) LOG.get_logger(LogName::MOUNT)->log_record(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
 /** @brief 运动模块日志宏 */
-#define LOG_MOTION(level, format, ...) LOG.GetLogger(LogName::MOTION)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+#define LOG_MOTION(level, format, ...) LOG.get_logger(LogName::MOTION)->log_record(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
 /** @brief 数据库数据模块日志宏 */
-#define LOG_DATA(level, format, ...) LOG.GetLogger(LogName::DB_DATA)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+#define LOG_DATA(level, format, ...) LOG.get_logger(LogName::DB_DATA)->log_record(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
 /** @brief 优化模块日志宏 */
-#define LOG_OPTIMIZE(level, format, ...) LOG.GetLogger(LogName::OPTIMIZE)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+#define LOG_OPTIMIZE(level, format, ...) LOG.get_logger(LogName::OPTIMIZE)->log_record(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
 /** @brief 从站控制模块日志宏 */
-#define LOG_SLAVE_CONTROL(level, format, ...) LOG.GetLogger(LogName::SLAVE_CONTROL)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+#define LOG_SLAVE_CONTROL(level, format, ...) LOG.get_logger(LogName::SLAVE_CONTROL)->log_record(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
 /** @brief 顶部相机模块日志宏 */
-#define LOG_CAMERA_TOP(level, format, ...) LOG.GetLogger(LogName::CAMERA_TOP)->LogRecord(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
+#define LOG_CAMERA_TOP(level, format, ...) LOG.get_logger(LogName::CAMERA_TOP)->log_record(__FILE__, __LINE__, __FUNCTION__, level, format, ##__VA_ARGS__)
 }

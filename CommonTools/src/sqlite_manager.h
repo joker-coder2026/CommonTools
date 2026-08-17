@@ -151,22 +151,22 @@ namespace common_tools
 		 * @param [in] file_name - 数据库文件路径
 		 * @return 打开是否成功
 		 **/
-		bool Open(const std::string& file_name);
+		bool open(const std::string& file_name);
 
 		/** @brief 关闭数据库（释放语句缓存与句柄，线程安全） */
-		void Close();
+		void close();
 
 		/**
 		 * @brief 检查数据库连接是否可用（执行 SELECT 1 探测）
 		 * @return 可用返回 true
 		 **/
-		bool IsOpen() noexcept;
+		bool is_open() noexcept;
 
 		/**
 		 * @brief 设置预处理语句缓存最大数量（超出时淘汰最旧语句）
 		 * @param [in] count - 最大缓存条数
 		 **/
-		void SetMaxStmtCacheCount(size_t count) noexcept;
+		void set_max_stmt_cache_count(size_t count) noexcept;
 
 		/**
 		 * @brief 执行非查询 SQL（INSERT/UPDATE/DELETE 等，支持参数化）
@@ -174,7 +174,7 @@ namespace common_tools
 		 * @param [in] params - 绑定参数列表
 		 * @return 执行是否成功
 		 **/
-		bool ExecuteNonQuery(const std::string& sql, const ParamsList& params = ParamsList());
+		bool execute_non_query(const std::string& sql, const ParamsList& params = ParamsList());
 
 		/**
 		 * @brief 批量执行非查询 SQL（内部使用事务，全部成功才提交）
@@ -182,7 +182,7 @@ namespace common_tools
 		 * @param [in] params_list - 多组绑定参数
 		 * @return 全部执行成功返回 true
 		 **/
-		bool ExecuteBatchNonQuery(const std::string& sql, const BatchParamsList& params_list);
+		bool execute_batch_non_query(const std::string& sql, const BatchParamsList& params_list);
 
 		/**
 		 * @brief 执行查询 SQL 并返回结果集
@@ -191,7 +191,7 @@ namespace common_tools
 		 * @param [out] result - 查询结果（BLOB 列以大写十六进制字符串返回）
 		 * @return 查询是否成功
 		 **/
-		bool ExecuteQuery(const std::string& sql, const ParamsList& params, RowList& result);
+		bool execute_query(const std::string& sql, const ParamsList& params, RowList& result);
 
 		/**
 		 * @brief 分页查询（自动统计总数与总页数）
@@ -204,7 +204,7 @@ namespace common_tools
 		 * @param [out] total_pages - 总页数
 		 * @return 查询是否成功
 		 **/
-		bool ExecuteQueryPage(const std::string& sql, const ParamsList& params, int current_page, int page_size,
+		bool execute_query_page(const std::string& sql, const ParamsList& params, int current_page, int page_size,
 		                      RowList& data, int& total_count, int& total_pages);
 
 		/**
@@ -217,7 +217,7 @@ namespace common_tools
 		 * @param [out] chunk_data - 读取到的数据（偏移超限时返回空）
 		 * @return 读取是否成功
 		 **/
-		bool ReadBlobChunk(const std::string& table_name, const std::string& col_name, int64_t row_id, size_t offset,
+		bool read_blob_chunk(const std::string& table_name, const std::string& col_name, int64_t row_id, size_t offset,
 		                   size_t chunk_size, std::vector<char>& chunk_data);
 
 		/**
@@ -229,51 +229,51 @@ namespace common_tools
 		 * @param [in] chunk_data - 待写入数据
 		 * @return 写入是否成功
 		 **/
-		bool WriteBlobChunk(const std::string& table_name, const std::string& col_name, int64_t row_id, size_t offset,
+		bool write_blob_chunk(const std::string& table_name, const std::string& col_name, int64_t row_id, size_t offset,
 		                    const std::vector<char>& chunk_data);
 
 		/** @brief 开启事务 @return 是否成功 */
-		bool BeginTransaction();
+		bool begin_transaction();
 
 		/** @brief 提交事务 @return 是否成功 */
-		bool CommitTransaction();
+		bool commit_transaction();
 
 		/** @brief 回滚事务 @return 是否成功 */
-		bool RollbackTransaction();
+		bool rollback_transaction();
 
 		/**
 		 * @brief 获取最近一次插入的自增 ID
 		 * @return 自增 ID（无连接时返回 0）
 		 **/
-		int64_t GetLastInsertId() const noexcept;
+		int64_t get_last_insert_id() const noexcept;
 
 		/**
 		 * @brief 获取最近一次操作的错误信息
 		 * @return 错误描述（无错误时为空串）
 		 **/
-		std::string GetLastErrorMsg() const noexcept;
+		std::string get_last_error_msg() const noexcept;
 
 	private:
 		/** @brief 检查连接有效性（SELECT 1 探测） */
-		bool CheckConnection() noexcept;
+		bool check_connection() noexcept;
 
 		/** @brief 尝试重连数据库（按上次路径重新打开并清空缓存） */
-		bool TryReconnect() noexcept;
+		bool try_reconnect() noexcept;
 
 		/** @brief 从缓存获取预处理语句（命中时重置复用） */
-		sqlite3_stmt* GetStmtCache(const std::string& sql);
+		sqlite3_stmt* get_stmt_cache(const std::string& sql);
 
 		/** @brief 添加预处理语句到缓存（超出上限时淘汰最旧） */
-		void AddStmtCache(const std::string& sql, sqlite3_stmt* stmt);
+		void add_stmt_cache(const std::string& sql, sqlite3_stmt* stmt);
 
 		/** @brief 清空预处理语句缓存 */
-		void ClearStmtCache();
+		void clear_stmt_cache();
 
 		/** @brief 将参数列表绑定到预处理语句 */
-		bool BindParams(sqlite3_stmt* stmt, const ParamsList& params);
+		bool bind_params(sqlite3_stmt* stmt, const ParamsList& params);
 
 		/** @brief 执行已绑定的查询语句并填充结果集 */
-		bool ExecutePreparedQuery(sqlite3_stmt* stmt, RowList& result);
+		bool execute_prepared_query(sqlite3_stmt* stmt, RowList& result);
 
 		sqlite3* db_ = nullptr; // 数据库句柄
 		mutable std::recursive_mutex mutex_; // 线程安全锁

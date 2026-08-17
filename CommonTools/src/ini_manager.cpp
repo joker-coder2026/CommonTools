@@ -48,7 +48,7 @@ namespace common_tools
 
 	IniManager::IniManager(const std::string& file_path)
 	{
-		SetLastError("");
+		set_last_error("");
 		file_path_ = "";
 
 		if (ContainsDriveLetter(file_path) && ContainsPathSeparator(file_path))
@@ -62,72 +62,72 @@ namespace common_tools
 		}
 	}
 
-	bool IniManager::WriteValue(const std::string& section, const std::string& key, const std::string& value)
+	bool IniManager::write_value(const std::string& section, const std::string& key, const std::string& value)
 	{
-		SetLastError("");
+		set_last_error("");
 
 		BOOL result = ::WritePrivateProfileString(section.c_str(), key.c_str(), value.c_str(), file_path_.c_str());
 		if (!result)
 		{
-			SetLastError("Failed to write value to INI file");
+			set_last_error("Failed to write value to INI file");
 		}
 		return result != 0;
 	}
 
-	std::string IniManager::ReadValue(const std::string& section, const std::string& key,
+	std::string IniManager::read_value(const std::string& section, const std::string& key,
 	                                  const std::string& default_value)
 	{
-		SetLastError("");
+		set_last_error("");
 
 		char buffer[256] = {0};
 		DWORD size = ::GetPrivateProfileString(section.c_str(), key.c_str(), default_value.c_str(), buffer,
 		                                       sizeof(buffer), file_path_.c_str());
-		if (size == 0 && !SectionExists(section))
+		if (size == 0 && !section_exists(section))
 		{
-			SetLastError("Section not found in INI file");
+			set_last_error("Section not found in INI file");
 		}
 		return buffer;
 	}
 
-	bool IniManager::WriteInt(const std::string& section, const std::string& key, int value)
+	bool IniManager::write_int(const std::string& section, const std::string& key, int value)
 	{
-		return WriteValue(section, key, ToString(value));
+		return write_value(section, key, to_string(value));
 	}
 
-	bool IniManager::WriteBool(const std::string& section, const std::string& key, bool value)
+	bool IniManager::write_bool(const std::string& section, const std::string& key, bool value)
 	{
-		return WriteValue(section, key, ToString(value));
+		return write_value(section, key, to_string(value));
 	}
 
-	bool IniManager::WriteDouble(const std::string& section, const std::string& key, double value)
+	bool IniManager::write_double(const std::string& section, const std::string& key, double value)
 	{
-		return WriteValue(section, key, ToString(value));
+		return write_value(section, key, to_string(value));
 	}
 
-	int IniManager::ReadInt(const std::string& section, const std::string& key, int default_value)
+	int IniManager::read_int(const std::string& section, const std::string& key, int default_value)
 	{
-		return FromString(ReadValue(section, key, ""), default_value);
+		return from_string(read_value(section, key, ""), default_value);
 	}
 
-	bool IniManager::ReadBool(const std::string& section, const std::string& key, bool default_value)
+	bool IniManager::read_bool(const std::string& section, const std::string& key, bool default_value)
 	{
-		return FromString(ReadValue(section, key, ""), default_value);
+		return from_string(read_value(section, key, ""), default_value);
 	}
 
-	double IniManager::ReadDouble(const std::string& section, const std::string& key, double default_value)
+	double IniManager::read_double(const std::string& section, const std::string& key, double default_value)
 	{
-		return FromString(ReadValue(section, key, ""), default_value);
+		return from_string(read_value(section, key, ""), default_value);
 	}
 
 	std::map<std::string, std::string> IniManager::ReadSection(const std::string& section)
 	{
-		SetLastError("");
+		set_last_error("");
 
 		std::map<std::string, std::string> result;
 
-		if (!SectionExists(section))
+		if (!section_exists(section))
 		{
-			SetLastError("Section not found in INI file");
+			set_last_error("Section not found in INI file");
 			return result;
 		}
 
@@ -154,23 +154,23 @@ namespace common_tools
 		return result;
 	}
 
-	bool IniManager::WriteSection(const std::string& section, const std::map<std::string, std::string>& keyValues)
+	bool IniManager::write_section(const std::string& section, const std::map<std::string, std::string>& keyValues)
 	{
-		SetLastError("");
+		set_last_error("");
 
 		// 先删除现有 section
-		if (!DeleteSection(section))
+		if (!delete_section(section))
 		{
-			SetLastError("Failed to clear existing section");
+			set_last_error("Failed to clear existing section");
 			return false;
 		}
 
 		// 写入新的键值对
 		for (auto it = keyValues.begin(); it != keyValues.end(); ++it)
 		{
-			if (!WriteValue(section, it->first, it->second))
+			if (!write_value(section, it->first, it->second))
 			{
-				SetLastError("Failed to write key-value pair");
+				set_last_error("Failed to write key-value pair");
 				return false;
 			}
 		}
@@ -178,33 +178,33 @@ namespace common_tools
 		return true;
 	}
 
-	bool IniManager::DeleteKey(const std::string& section, const std::string& key)
+	bool IniManager::delete_key(const std::string& section, const std::string& key)
 	{
-		SetLastError("");
+		set_last_error("");
 
 		BOOL result = ::WritePrivateProfileString(section.c_str(), key.c_str(), nullptr, file_path_.c_str());
 		if (!result)
 		{
-			SetLastError("Failed to delete key from INI file");
+			set_last_error("Failed to delete key from INI file");
 		}
 		return result != 0;
 	}
 
-	bool IniManager::DeleteSection(const std::string& section)
+	bool IniManager::delete_section(const std::string& section)
 	{
-		SetLastError("");
+		set_last_error("");
 
 		BOOL result = ::WritePrivateProfileString(section.c_str(), nullptr, nullptr, file_path_.c_str());
 		if (!result)
 		{
-			SetLastError("Failed to delete section from INI file");
+			set_last_error("Failed to delete section from INI file");
 		}
 		return result != 0;
 	}
 
-	bool IniManager::FileExists()
+	bool IniManager::file_exists()
 	{
-		SetLastError("");
+		set_last_error("");
 
 		std::ifstream file(file_path_);
 		bool exist = file.good();
@@ -213,9 +213,9 @@ namespace common_tools
 		return exist;
 	}
 
-	bool IniManager::BackupFile(const std::string& backupPath)
+	bool IniManager::backup_file(const std::string& backupPath)
 	{
-		SetLastError("");
+		set_last_error("");
 
 		std::string file_path(file_path_);
 
@@ -236,31 +236,31 @@ namespace common_tools
 		BOOL result = ::CopyFile(file_path.c_str(), actual_backup_path.c_str(), FALSE); // 覆盖已存在的文件
 		if (!result)
 		{
-			SetLastError("Failed to backup INI file");
+			set_last_error("Failed to backup INI file");
 		}
 
 		return result != 0;
 	}
 
-	bool IniManager::SectionExists(const std::string& section)
+	bool IniManager::section_exists(const std::string& section)
 	{
-		SetLastError("");
+		set_last_error("");
 
-		std::vector<std::string> sections = GetSectionNames();
+		std::vector<std::string> sections = get_section_names();
 		return std::find(sections.begin(), sections.end(), section) != sections.end();
 	}
 
-	bool IniManager::KeyExists(const std::string& section, const std::string& key)
+	bool IniManager::key_exists(const std::string& section, const std::string& key)
 	{
-		SetLastError("");
+		set_last_error("");
 
-		std::vector<std::string> keys = GetKeyNames(section);
+		std::vector<std::string> keys = get_key_names(section);
 		return std::find(keys.begin(), keys.end(), key) != keys.end();
 	}
 
-	std::vector<std::string> IniManager::GetSectionNames()
+	std::vector<std::string> IniManager::get_section_names()
 	{
-		SetLastError("");
+		set_last_error("");
 
 		std::vector<std::string> sections;
 
@@ -280,9 +280,9 @@ namespace common_tools
 		return sections;
 	}
 
-	std::vector<std::string> IniManager::GetKeyNames(const std::string& section)
+	std::vector<std::string> IniManager::get_key_names(const std::string& section)
 	{
-		SetLastError("");
+		set_last_error("");
 
 		std::vector<std::string> keys;
 
@@ -307,12 +307,12 @@ namespace common_tools
 		return keys;
 	}
 
-	std::string IniManager::GetLastError()
+	std::string IniManager::get_last_error()
 	{
 		return last_error_;
 	}
 
-	void IniManager::SetLastError(const std::string& error)
+	void IniManager::set_last_error(const std::string& error)
 	{
 		last_error_ = error;
 	}

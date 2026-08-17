@@ -177,20 +177,20 @@ namespace common_tools
 
 	Logger::~Logger()
 	{
-		Shutdown();
+		shutdown();
 	}
 
-	Logger::Config& Logger::GetConfig()
+	Logger::Config& Logger::get_config()
 	{
 		return config_;
 	}
 
-	void Logger::SetOutputCallback(LogOutput type, const std::function<void(const MetaMsg&)>& callback)
+	void Logger::set_output_callback(LogOutput type, const std::function<void(const MetaMsg&)>& callback)
 	{
 		custom_callbacks_[type] = callback;
 	}
 
-	void Logger::Trace(const char* format, ...)
+	void Logger::trace(const char* format, ...)
 	{
 		if (LogLevel::Trace < config_.level)
 			return;
@@ -212,10 +212,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Trace, nullptr, 0, nullptr, buffer.get());
+		log(LogLevel::Trace, nullptr, 0, nullptr, buffer.get());
 	}
 
-	void Logger::Debug(const char* format, ...)
+	void Logger::debug(const char* format, ...)
 	{
 		if (LogLevel::Debug < config_.level)
 			return;
@@ -237,10 +237,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Debug, nullptr, 0, nullptr, buffer.get());
+		log(LogLevel::Debug, nullptr, 0, nullptr, buffer.get());
 	}
 
-	void Logger::Info(const char* format, ...)
+	void Logger::info(const char* format, ...)
 	{
 		if (LogLevel::Info < config_.level)
 			return;
@@ -262,10 +262,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Info, nullptr, 0, nullptr, buffer.get());
+		log(LogLevel::Info, nullptr, 0, nullptr, buffer.get());
 	}
 
-	void Logger::Warn(const char* format, ...)
+	void Logger::warn(const char* format, ...)
 	{
 		if (LogLevel::Warn < config_.level)
 			return;
@@ -287,10 +287,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Warn, nullptr, 0, nullptr, buffer.get());
+		log(LogLevel::Warn, nullptr, 0, nullptr, buffer.get());
 	}
 
-	void Logger::Error(const char* format, ...)
+	void Logger::error(const char* format, ...)
 	{
 		if (LogLevel::Error < config_.level)
 			return;
@@ -312,10 +312,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Error, nullptr, 0, nullptr, buffer.get());
+		log(LogLevel::Error, nullptr, 0, nullptr, buffer.get());
 	}
 
-	void Logger::Critical(const char* format, ...)
+	void Logger::critical(const char* format, ...)
 	{
 		if (LogLevel::Critical < config_.level)
 			return;
@@ -337,10 +337,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Critical, nullptr, 0, nullptr, buffer.get());
+		log(LogLevel::Critical, nullptr, 0, nullptr, buffer.get());
 	}
 
-	void Logger::LogRecord(LogLevel level, const char* format, ...)
+	void Logger::log_record(LogLevel level, const char* format, ...)
 	{
 		if (level < config_.level)
 			return;
@@ -362,10 +362,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(level, nullptr, 0, nullptr, buffer.get());
+		log(level, nullptr, 0, nullptr, buffer.get());
 	}
 
-	void Logger::Trace(const char* file, int line, const char* function, const char* format, ...)
+	void Logger::trace(const char* file, int line, const char* function, const char* format, ...)
 	{
 		if (LogLevel::Trace < config_.level)
 			return;
@@ -387,10 +387,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Trace, file, line, function, buffer.get());
+		log(LogLevel::Trace, file, line, function, buffer.get());
 	}
 
-	void Logger::Debug(const char* file, int line, const char* function, const char* format, ...)
+	void Logger::debug(const char* file, int line, const char* function, const char* format, ...)
 	{
 		if (LogLevel::Debug < config_.level)
 			return;
@@ -412,10 +412,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Debug, file, line, function, buffer.get());
+		log(LogLevel::Debug, file, line, function, buffer.get());
 	}
 
-	void Logger::Info(const char* file, int line, const char* function, const char* format, ...)
+	void Logger::info(const char* file, int line, const char* function, const char* format, ...)
 	{
 		if (LogLevel::Info < config_.level)
 			return;
@@ -437,10 +437,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Info, file, line, function, buffer.get());
+		log(LogLevel::Info, file, line, function, buffer.get());
 	}
 
-	void Logger::Warn(const char* file, int line, const char* function, const char* format, ...)
+	void Logger::warn(const char* file, int line, const char* function, const char* format, ...)
 	{
 		if (LogLevel::Warn < config_.level)
 			return;
@@ -462,10 +462,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Warn, file, line, function, buffer.get());
+		log(LogLevel::Warn, file, line, function, buffer.get());
 	}
 
-	void Logger::Error(const char* file, int line, const char* function, const char* format, ...)
+	void Logger::error(const char* file, int line, const char* function, const char* format, ...)
 	{
 		if (LogLevel::Error < config_.level)
 			return;
@@ -487,10 +487,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Error, file, line, function, buffer.get());
+		log(LogLevel::Error, file, line, function, buffer.get());
 	}
 
-	void Logger::Critical(const char* file, int line, const char* function, const char* format, ...)
+	void Logger::critical(const char* file, int line, const char* function, const char* format, ...)
 	{
 		if (LogLevel::Critical < config_.level)
 			return;
@@ -512,10 +512,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(LogLevel::Critical, file, line, function, buffer.get());
+		log(LogLevel::Critical, file, line, function, buffer.get());
 	}
 
-	void Logger::LogRecord(const char* file, const int line, const char* function, LogLevel level, const char* format,
+	void Logger::log_record(const char* file, const int line, const char* function, LogLevel level, const char* format,
 	                       ...)
 	{
 		if (level < config_.level)
@@ -538,10 +538,10 @@ namespace common_tools
 		vsnprintf(buffer.get(), length + 1, format, args);
 		va_end(args);
 
-		Log(level, file, line, function, buffer.get());
+		log(level, file, line, function, buffer.get());
 	}
 
-	std::string Logger::FormatLogMessage(LogOutput outputs, LogLevel level, const char* file, int line,
+	std::string Logger::format_log_message(LogOutput outputs, LogLevel level, const char* file, int line,
 	                                     const char* function, const char* message)
 	{
 		std::stringstream thread_id;
@@ -551,35 +551,35 @@ namespace common_tools
 
 		std::string level_name;
 		if (level == LogLevel::InfoRed)
-			level_name = "Info";
+			level_name = "info";
 		else if (level == LogLevel::Info)
-			level_name = "Info";
+			level_name = "info";
 		else if (level == LogLevel::InfoGreen)
-			level_name = "Info";
+			level_name = "info";
 		switch (level)
 		{
 		case LogLevel::Trace:
-			level_name = "Trace";
+			level_name = "trace";
 			break;
 		case LogLevel::Debug:
-			level_name = "Debug";
+			level_name = "debug";
 			break;
 		case LogLevel::Info:
-			level_name = "Info";
+			level_name = "info";
 			break;
 		case LogLevel::Warn:
-			level_name = "Warn";
+			level_name = "warn";
 			break;
 		case LogLevel::Error:
-			level_name = "Error";
+			level_name = "error";
 			break;
 		case LogLevel::Critical:
-			level_name = "Critical";
+			level_name = "critical";
 			break;
 		case LogLevel::InfoRed:
 		case LogLevel::InfoGreen:
 		case LogLevel::InfoBlack: default:
-			level_name = "Info";
+			level_name = "info";
 			break;
 		}
 
@@ -632,7 +632,7 @@ namespace common_tools
 				if (first && config_.enable_database) // 一条消息
 				{
 					first = false;
-					LogDbManager::GetInstance().AddMsgToQueue(meta_msg);
+					LogDbManager::get_instance().add_msg_to_queue(meta_msg);
 				}
 			}
 		}
@@ -643,17 +643,17 @@ namespace common_tools
 		return result;
 	}
 
-	void Logger::Log(LogLevel level, const char* file, int line, const char* function, const char* message)
+	void Logger::log(LogLevel level, const char* file, int line, const char* function, const char* message)
 	{
-		if (config_.outputs == LogOutput::None || !HasValidOutput(config_.outputs))
+		if (config_.outputs == LogOutput::None || !has_valid_output(config_.outputs))
 		{
 			return;
 		}
 
-		auto temp_logger = GetCachedLogger(config_.outputs);
+		auto temp_logger = get_cached_logger(config_.outputs);
 		if (temp_logger)
 		{
-			std::string fmt_msg = FormatLogMessage(config_.outputs, level, file, line, function, message);
+			std::string fmt_msg = format_log_message(config_.outputs, level, file, line, function, message);
 
 			switch (level)
 			{
@@ -686,7 +686,7 @@ namespace common_tools
 		}
 	}
 
-	bool Logger::HasValidOutput(LogOutput outputs) const
+	bool Logger::has_valid_output(LogOutput outputs) const
 	{
 		if (outputs == LogOutput::None)
 		{
@@ -724,7 +724,7 @@ namespace common_tools
 		return true;
 	}
 
-	bool Logger::Initialize()
+	bool Logger::initialize()
 	{
 		try
 		{
@@ -744,16 +744,16 @@ namespace common_tools
 		}
 	}
 
-	bool Logger::IsInitialized() const
+	bool Logger::is_initialized() const
 	{
 		return is_initialized_;
 	}
 
-	void Logger::Flush()
+	void Logger::flush()
 	{
-		if (config_.outputs != LogOutput::None && HasValidOutput(config_.outputs))
+		if (config_.outputs != LogOutput::None && has_valid_output(config_.outputs))
 		{
-			auto logger = GetCachedLogger(config_.outputs);
+			auto logger = get_cached_logger(config_.outputs);
 			if (logger)
 			{
 				logger->flush();
@@ -761,13 +761,13 @@ namespace common_tools
 		}
 	}
 
-	void Logger::Shutdown()
+	void Logger::shutdown()
 	{
 		is_initialized_ = false;
 		// 注意：不在这里清理spdlog的全局状态，因为可能有其他日志器在使用
 	}
 
-	std::shared_ptr<spdlog::logger> Logger::GetCachedLogger(LogOutput outputs)
+	std::shared_ptr<spdlog::logger> Logger::get_cached_logger(LogOutput outputs)
 	{
 		std::lock_guard<std::mutex> lock(cache_mutex_);
 
@@ -786,7 +786,7 @@ namespace common_tools
 		}
 
 		// 缓存不存在，创建新日志器
-		auto logger = CreateTempLogger(outputs);
+		auto logger = create_temp_logger(outputs);
 		if (logger)
 		{
 			logger_cache_[outputs] = logger;
@@ -794,7 +794,7 @@ namespace common_tools
 		return logger;
 	}
 
-	std::shared_ptr<spdlog::logger> Logger::CreateTempLogger(LogOutput outputs)
+	std::shared_ptr<spdlog::logger> Logger::create_temp_logger(LogOutput outputs)
 	{
 		std::vector<std::shared_ptr<spdlog::sinks::sink>> sinks;
 
@@ -862,7 +862,7 @@ namespace common_tools
 		//	auto it = custom_callbacks_.find(LogOutput::Gui);
 		//	if (it != custom_callbacks_.end() && it->second)
 		//	{
-		//		auto custom_sink = CreateCustomSink(it->second);
+		//		auto custom_sink = create_custom_sink(it->second);
 		//		sinks.push_back(custom_sink);
 		//	}
 		//}
@@ -872,7 +872,7 @@ namespace common_tools
 		//	auto it = custom_callbacks_.find(LogOutput::VsTrace);
 		//	if (it != custom_callbacks_.end() && it->second)
 		//	{
-		//		auto custom_sink = CreateCustomSink(it->second);
+		//		auto custom_sink = create_custom_sink(it->second);
 		//		sinks.push_back(custom_sink);
 		//	}
 		//}
@@ -882,7 +882,7 @@ namespace common_tools
 		//	auto it = custom_callbacks_.find(LogOutput::XTrace);
 		//	if (it != custom_callbacks_.end() && it->second)
 		//	{
-		//		auto custom_sink = CreateCustomSink(it->second);
+		//		auto custom_sink = create_custom_sink(it->second);
 		//		sinks.push_back(custom_sink);
 		//	}
 		//}
@@ -938,28 +938,28 @@ namespace common_tools
 		}
 	}
 
-	std::shared_ptr<Logger::CustomSink> Logger::CreateCustomSink(const std::function<void(const MetaMsg&)>& callback)
+	std::shared_ptr<Logger::CustomSink> Logger::create_custom_sink(const std::function<void(const MetaMsg&)>& callback)
 	{
 		return std::make_shared<CustomSink>(callback);
 	}
 
-	LogDbManager& LogDbManager::GetInstance()
+	LogDbManager& LogDbManager::get_instance()
 	{
 		static LogDbManager instance;
 		return instance;
 	}
 
-	bool LogDbManager::Init()
+	bool LogDbManager::init()
 	{
 		if (is_running_)
 			return true;
 		is_running_ = true;
 
-		std::thread(&LogDbManager::WorkerThread, this).detach();
+		std::thread(&LogDbManager::worker_thread, this).detach();
 		return true;
 	}
 
-	void LogDbManager::Exit()
+	void LogDbManager::exit()
 	{
 		if (!is_running_)
 			return;
@@ -970,12 +970,12 @@ namespace common_tools
 		std::lock_guard<std::mutex> lock(db_mutex_);
 		if (db_)
 		{
-			db_->Close();
+			db_->close();
 		}
 		db_.reset();
 	}
 
-	void LogDbManager::AddMsgToQueue(const Logger::MetaMsg& msg)
+	void LogDbManager::add_msg_to_queue(const Logger::MetaMsg& msg)
 	{
 		if (!is_running_)
 		{
@@ -985,7 +985,7 @@ namespace common_tools
 		cv_.notify_one();
 	}
 
-	void LogDbManager::WorkerThread()
+	void LogDbManager::worker_thread()
 	{
 		constexpr uint8_t FIELD_COUNT_MAX = 20; // 最大字段数
 		auto CREATE_SQL = R"(CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -1024,19 +1024,19 @@ namespace common_tools
 			GetLocalTime(&st);
 			std::string date = string_utils::format("%04d-%02d-%02d", st.wYear, st.wMonth, st.wDay);
 
-			if (date != db_last_date_ || !db_ || !db_->IsOpen())
+			if (date != db_last_date_ || !db_ || !db_->is_open())
 			{
 				if (db_)
-					db_->Close();
+					db_->close();
 
 				file_system::create_directories("d:/log/logger");
 				db_ = std::make_shared<SqliteManager>("d:/log/logger/" + date + "_log.db");
 				// d:/log/logger/2025-10-10_log.db
 
-				if (!db_->IsOpen())
+				if (!db_->is_open())
 					return false;
 
-				bool rc = db_->ExecuteNonQuery(CREATE_SQL);
+				bool rc = db_->execute_non_query(CREATE_SQL);
 				db_last_date_ = date;
 			}
 
@@ -1062,7 +1062,7 @@ namespace common_tools
 				}
 				params_list.push_back(std::move(params));
 			}
-			bool rc = db_->ExecuteBatchNonQuery(INSERT_SQL, params_list);
+			bool rc = db_->execute_batch_non_query(INSERT_SQL, params_list);
 
 			return true;
 		};
@@ -1113,19 +1113,19 @@ namespace common_tools
 			}
 		}
 
-		if (remain.empty() || !db_ || !db_->IsOpen())
+		if (remain.empty() || !db_ || !db_->is_open())
 			return;
 
 		auto ok = LamdbaFunc(remain);
 	}
 
-	LoggerManager& LoggerManager::GetInstance()
+	LoggerManager& LoggerManager::get_instance()
 	{
 		static LoggerManager instance;
 		return instance;
 	}
 
-	bool LoggerManager::createLogger(const LogName& name)
+	bool LoggerManager::create_logger(const LogName& name)
 	{
 		std::lock_guard<std::mutex> lock(logger_mutex_);
 
@@ -1135,17 +1135,17 @@ namespace common_tools
 		}
 
 		auto logger = std::make_shared<Logger>(name);
-		logger->GetConfig() = Logger::Config(name);
+		logger->get_config() = Logger::Config(name);
 
-		if (!logger->IsInitialized())
-			logger->Initialize();
+		if (!logger->is_initialized())
+			logger->initialize();
 
 		loggers_[name] = logger;
 
 		return logger ? true : false;
 	}
 
-	bool LoggerManager::createLogger(const Logger::Config& config)
+	bool LoggerManager::create_logger(const Logger::Config& config)
 	{
 		std::lock_guard<std::mutex> lock(logger_mutex_);
 
@@ -1156,15 +1156,15 @@ namespace common_tools
 
 		auto logger = std::make_shared<Logger>(config);
 
-		if (!logger->IsInitialized())
-			logger->Initialize(); // 内部已持有 config
+		if (!logger->is_initialized())
+			logger->initialize(); // 内部已持有 config
 
 		loggers_[config.log_name] = logger;
 
 		return logger ? true : false;
 	}
 
-	std::shared_ptr<Logger> LoggerManager::GetLogger(const LogName& name)
+	std::shared_ptr<Logger> LoggerManager::get_logger(const LogName& name)
 	{
 		std::lock_guard<std::mutex> lock(logger_mutex_);
 
@@ -1177,7 +1177,7 @@ namespace common_tools
 		return loggers_[LogName::DEFAULT];
 	}
 
-	std::vector<LogName> LoggerManager::LoggerNames() const
+	std::vector<LogName> LoggerManager::logger_names() const
 	{
 		std::lock_guard<std::mutex> lock(logger_mutex_);
 
@@ -1190,7 +1190,7 @@ namespace common_tools
 		return names;
 	}
 
-	std::string LoggerManager::LogNameToStr(const LogName& name)
+	std::string LoggerManager::log_name_to_str(const LogName& name)
 	{
 		switch (name)
 		{
@@ -1215,7 +1215,7 @@ namespace common_tools
 
 	LoggerManager::LoggerManager()
 	{
-		LogDbManager::GetInstance().Init();
+		LogDbManager::get_instance().init();
 
 		//【1】创建日志器(当模块日志器不存在时返回默认日志器)
 		for (int log_name_index = 0; log_name_index < static_cast<int>(LogName::LOGNAME_MAX); ++log_name_index)
@@ -1223,14 +1223,14 @@ namespace common_tools
 			auto log_name = static_cast<LogName>(log_name_index);
 			Logger::Config config(log_name);
 			config.file_path = "d:/log";
-			config.file_name = LogNameToStr(log_name) + ".ini";
+			config.file_name = log_name_to_str(log_name) + ".ini";
 			config.level = LogLevel::Debug;
-			createLogger(config);
+			create_logger(config);
 		}
 
 		//【2】启动定期清理线程
 		stop_cleanup_thread_ = false;
-		cleanup_thread_ = std::thread(&LoggerManager::CleanupThread, this);
+		cleanup_thread_ = std::thread(&LoggerManager::cleanup_thread, this);
 	}
 
 	LoggerManager::~LoggerManager()
@@ -1241,10 +1241,10 @@ namespace common_tools
 			cleanup_thread_.join();
 		}
 
-		LogDbManager::GetInstance().Exit();
+		LogDbManager::get_instance().exit();
 	}
 
-	void LoggerManager::AddCleanupDirectory(const std::string& path, int days)
+	void LoggerManager::add_cleanup_directory(const std::string& path, int days)
 	{
 		std::lock_guard<std::mutex> lock(cleanup_mutex_);
 		if (days <= 0)
@@ -1253,7 +1253,7 @@ namespace common_tools
 			cleanup_map_[path] = days;
 	}
 
-	void LoggerManager::CleanupThread()
+	void LoggerManager::cleanup_thread()
 	{
 		while (!stop_cleanup_thread_)
 		{

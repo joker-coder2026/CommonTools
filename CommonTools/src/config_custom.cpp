@@ -33,12 +33,12 @@ namespace common_tools
 
 			file_system::create_directories(base_path_);
 
-			LoadJsonFiles();
+			load_json_files();
 		}
 
 		~ConfigImpl()
 		{
-			SaveJsonFiles();
+			save_json_files();
 		}
 
 		static std::string EnsureTrailingSlash(const std::string& path)
@@ -82,7 +82,7 @@ namespace common_tools
 			return true;
 		}
 
-		bool LoadJsonFile(const std::string& file_name)
+		bool load_json_file(const std::string& file_name)
 		{
 			std::lock_guard<std::mutex> lock(load_file_mtx_);
 
@@ -111,7 +111,7 @@ namespace common_tools
 			return true;
 		}
 
-		bool SaveJsonFile(const std::string& file_name, const bool& is_new_file = false)
+		bool save_json_file(const std::string& file_name, const bool& is_new_file = false)
 		{
 			std::lock_guard<std::mutex> lock(save_file_mtx_);
 
@@ -189,7 +189,7 @@ namespace common_tools
 			return true;
 		}
 
-		bool DeleteJsonFile(const std::string& file_name)
+		bool delete_json_file(const std::string& file_name)
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 
@@ -205,7 +205,7 @@ namespace common_tools
 			return true;
 		}
 
-		bool RenameJsonFile(const std::string& old_file_name, const std::string& new_file_name)
+		bool rename_json_file(const std::string& old_file_name, const std::string& new_file_name)
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 
@@ -229,7 +229,7 @@ namespace common_tools
 			return true;
 		}
 
-		bool LoadJsonFiles()
+		bool load_json_files()
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 
@@ -249,7 +249,7 @@ namespace common_tools
 				if (!(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 				{
 					std::string file_name = find_data.cFileName;
-					LoadJsonFile(file_name);
+					load_json_file(file_name);
 				}
 			}
 			while (FindNextFileA(handle, &find_data) != 0);
@@ -266,7 +266,7 @@ namespace common_tools
 			return true;
 		}
 
-		bool SaveJsonFiles()
+		bool save_json_files()
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 
@@ -292,7 +292,7 @@ namespace common_tools
 					continue;
 				}
 
-				if (!SaveJsonFile(member))
+				if (!save_json_file(member))
 				{
 					fail_count++;
 				}
@@ -307,7 +307,7 @@ namespace common_tools
 			return false;
 		}
 
-		bool JsonToVector(const std::string& file_name, std::vector<ConfigCustom::Members>& current_file_data)
+		bool json_to_vector(const std::string& file_name, std::vector<ConfigCustom::Members>& current_file_data)
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 
@@ -381,7 +381,7 @@ namespace common_tools
 			return true;
 		}
 
-		bool VectorToJson(const std::string& file_name, const std::vector<ConfigCustom::Members>& current_file_data)
+		bool vector_to_json(const std::string& file_name, const std::vector<ConfigCustom::Members>& current_file_data)
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 
@@ -419,7 +419,7 @@ namespace common_tools
 			return true;
 		}
 
-		bool RemoveJsonObject(const std::string& object_path)
+		bool remove_json_object(const std::string& object_path)
 		{
 			std::vector<std::string> objects = string_utils::split(object_path, '/', 3);
 			if (objects.size() < 3)
@@ -447,7 +447,7 @@ namespace common_tools
 			return true;
 		}
 
-		std::vector<std::string> GetJsonFileList()
+		std::vector<std::string> get_json_file_list()
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 
@@ -455,7 +455,7 @@ namespace common_tools
 			return json_root_.getMemberNames();
 		}
 
-		std::string JsonToString()
+		std::string json_to_string()
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 
@@ -463,13 +463,13 @@ namespace common_tools
 			return json_root_.toStyledString();
 		}
 
-		std::string GetLastErrorMsg() const
+		std::string get_last_error_msg() const
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 			return last_error_;
 		}
 
-		std::vector<std::string> GetSections(const std::string& file_name)
+		std::vector<std::string> get_sections(const std::string& file_name)
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 
@@ -505,7 +505,7 @@ namespace common_tools
 			return sections;
 		}
 
-		std::vector<ConfigCustom::Members> GetSectionKeyValuePairs(const std::string& file_name, const std::string& section)
+		std::vector<ConfigCustom::Members> get_section_key_value_pairs(const std::string& file_name, const std::string& section)
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 
@@ -588,7 +588,7 @@ namespace common_tools
 			return key_value_pairs;
 		}
 
-		bool GetAllSectionsKeyValuePairs(const std::string& file_name, std::map<std::string, std::map<std::string, std::string>>& result)
+		bool get_all_sections_key_value_pairs(const std::string& file_name, std::map<std::string, std::map<std::string, std::string>>& result)
 		{
 			std::lock_guard<std::mutex> lock(data_mtx_);
 
@@ -682,7 +682,7 @@ namespace common_tools
 		return *this;
 	}
 
-	ConfigKey& ConfigKey::SetDescription(const std::string& value)
+	ConfigKey& ConfigKey::set_description(const std::string& value)
 	{
 		//std::lock_guard<std::mutex> lock(impl_->data_mtx_); // by ht 20260528
 		//if (impl_->json_root_.isMember(file_name_)
@@ -698,7 +698,7 @@ namespace common_tools
 		return *this;
 	}
 
-	std::string ConfigKey::GetDescription(const std::string& default_value) const
+	std::string ConfigKey::get_description(const std::string& default_value) const
 	{
 		auto value = default_value; // ascii
 		{
@@ -716,7 +716,7 @@ namespace common_tools
 		return value;
 	}
 
-	ConfigDataType ConfigKey::GetType() const
+	ConfigDataType ConfigKey::get_type() const
 	{
 		std::lock_guard<std::mutex> lock(impl_->data_mtx_);
 
@@ -751,7 +751,7 @@ namespace common_tools
 	}
 
 	template<>
-	COMMONTOOLS_API int ConfigKey::Get<int>(const int& default_value, const std::string& description) const
+	COMMONTOOLS_API int ConfigKey::get<int>(const int& default_value, const std::string& description) const
 	{
 		auto value = default_value;
 		{
@@ -768,12 +768,12 @@ namespace common_tools
 			}
 		}
 		if (!description.empty())
-			const_cast<ConfigKey*>(this)->SetDescription(description);
+			const_cast<ConfigKey*>(this)->set_description(description);
 		return value;
 	}
 
 	template<>
-	COMMONTOOLS_API double ConfigKey::Get<double>(const double& default_value, const std::string& description) const
+	COMMONTOOLS_API double ConfigKey::get<double>(const double& default_value, const std::string& description) const
 	{
 		auto value = default_value;
 		{
@@ -791,12 +791,12 @@ namespace common_tools
 			}
 		}
 		if (!description.empty())
-			const_cast<ConfigKey*>(this)->SetDescription(description);
+			const_cast<ConfigKey*>(this)->set_description(description);
 		return value;
 	}
 
 	template<>
-	COMMONTOOLS_API std::string ConfigKey::Get<std::string>(const std::string& default_value, const std::string& description) const
+	COMMONTOOLS_API std::string ConfigKey::get<std::string>(const std::string& default_value, const std::string& description) const
 	{
 		auto value = default_value;
 		{
@@ -812,12 +812,12 @@ namespace common_tools
 			}
 		}
 		if (!description.empty())
-			const_cast<ConfigKey*>(this)->SetDescription(description);
+			const_cast<ConfigKey*>(this)->set_description(description);
 		return value;
 	}
 
 	template<>
-	COMMONTOOLS_API ConfigKey& ConfigKey::Set<int>(const int& value, const std::string& description)
+	COMMONTOOLS_API ConfigKey& ConfigKey::set<int>(const int& value, const std::string& description)
 	{
 		std::lock_guard<std::mutex> lock(impl_->data_mtx_);
 		if (impl_->EnsureNodeExists(file_name_, section_, key_))
@@ -825,12 +825,12 @@ namespace common_tools
 			impl_->json_root_[file_name_][section_][key_]["value"] = value;
 		}
 		if (!description.empty())
-			SetDescription(description);
+			set_description(description);
 		return *this;
 	}
 
 	template<>
-	COMMONTOOLS_API ConfigKey& ConfigKey::Set<double>(const double& value, const std::string& description)
+	COMMONTOOLS_API ConfigKey& ConfigKey::set<double>(const double& value, const std::string& description)
 	{
 		std::lock_guard<std::mutex> lock(impl_->data_mtx_);
 		if (impl_->EnsureNodeExists(file_name_, section_, key_))
@@ -838,12 +838,12 @@ namespace common_tools
 			impl_->json_root_[file_name_][section_][key_]["value"] = value;
 		}
 		if (!description.empty())
-			SetDescription(description);
+			set_description(description);
 		return *this;
 	}
 
 	template<>
-	COMMONTOOLS_API ConfigKey& ConfigKey::Set<std::string>(const std::string& value, const std::string& description)
+	COMMONTOOLS_API ConfigKey& ConfigKey::set<std::string>(const std::string& value, const std::string& description)
 	{
 		std::lock_guard<std::mutex> lock(impl_->data_mtx_);
 		if (impl_->EnsureNodeExists(file_name_, section_, key_))
@@ -851,7 +851,7 @@ namespace common_tools
 			impl_->json_root_[file_name_][section_][key_]["value"] = string_utils::GBKToUTF8(value);
 		}
 		if (!description.empty())
-			SetDescription(description);
+			set_description(description);
 		return *this;
 	}
 
@@ -887,7 +887,7 @@ namespace common_tools
 		}
 	}
 
-	ConfigCustom& ConfigCustom::GetInstance()
+	ConfigCustom& ConfigCustom::get_instance()
 	{
 		static ConfigCustom instance;
 		return instance;
@@ -898,78 +898,78 @@ namespace common_tools
 		return ConfigSection(impl_, string_utils::to_lower(file_name));
 	}
 
-	std::vector<std::string> ConfigCustom::GetJsonFileList()
+	std::vector<std::string> ConfigCustom::get_json_file_list()
 	{
-		return impl_->GetJsonFileList();
+		return impl_->get_json_file_list();
 	}
 
-	std::string ConfigCustom::JsonToString() const
+	std::string ConfigCustom::json_to_string() const
 	{
-		return impl_->JsonToString();
+		return impl_->json_to_string();
 	}
 
-	std::string ConfigCustom::GetLastErrorMsg() const
+	std::string ConfigCustom::get_last_error_msg() const
 	{
-		return impl_->GetLastErrorMsg();
+		return impl_->get_last_error_msg();
 	}
 
-	bool ConfigCustom::LoadJsonFile(const std::string& file_name)
+	bool ConfigCustom::load_json_file(const std::string& file_name)
 	{
-		return impl_->LoadJsonFile(file_name);
+		return impl_->load_json_file(file_name);
 	}
 
-	bool ConfigCustom::SaveJsonFile(const std::string& file_name, const bool& is_new_file)
+	bool ConfigCustom::save_json_file(const std::string& file_name, const bool& is_new_file)
 	{
-		return impl_->SaveJsonFile(file_name, is_new_file);
+		return impl_->save_json_file(file_name, is_new_file);
 	}
 
-	bool ConfigCustom::DeleteJsonFile(const std::string& file_name)
+	bool ConfigCustom::delete_json_file(const std::string& file_name)
 	{
-		return impl_->DeleteJsonFile(file_name);
+		return impl_->delete_json_file(file_name);
 	}
 
-	bool ConfigCustom::RenameJsonFile(const std::string& old_file_name, const std::string& new_file_name)
+	bool ConfigCustom::rename_json_file(const std::string& old_file_name, const std::string& new_file_name)
 	{
-		return impl_->RenameJsonFile(old_file_name, new_file_name);
+		return impl_->rename_json_file(old_file_name, new_file_name);
 	}
 
-	bool ConfigCustom::LoadJsonFiles()
+	bool ConfigCustom::load_json_files()
 	{
-		return impl_->LoadJsonFiles();
+		return impl_->load_json_files();
 	}
 
-	bool ConfigCustom::SaveJsonFiles()
+	bool ConfigCustom::save_json_files()
 	{
-		return impl_->SaveJsonFiles();
+		return impl_->save_json_files();
 	}
 
-	bool ConfigCustom::JsonToVector(const std::string& file_name, std::vector<Members>& current_file_data)
+	bool ConfigCustom::json_to_vector(const std::string& file_name, std::vector<Members>& current_file_data)
 	{
-		return impl_->JsonToVector(file_name, current_file_data);
+		return impl_->json_to_vector(file_name, current_file_data);
 	}
 
-	bool ConfigCustom::VectorToJson(const std::string& file_name, const std::vector<Members>& current_file_data)
+	bool ConfigCustom::vector_to_json(const std::string& file_name, const std::vector<Members>& current_file_data)
 	{
-		return impl_->VectorToJson(file_name, current_file_data);
+		return impl_->vector_to_json(file_name, current_file_data);
 	}
 
-	bool ConfigCustom::RemoveJsonObject(const std::string& object_path)
+	bool ConfigCustom::remove_json_object(const std::string& object_path)
 	{
-		return impl_->RemoveJsonObject(object_path);
+		return impl_->remove_json_object(object_path);
 	}
 
-	std::vector<std::string> ConfigCustom::GetSections(const std::string& file_name)
+	std::vector<std::string> ConfigCustom::get_sections(const std::string& file_name)
 	{
-		return impl_->GetSections(string_utils::to_lower(file_name));
+		return impl_->get_sections(string_utils::to_lower(file_name));
 	}
 
-	std::vector<ConfigCustom::Members> ConfigCustom::GetSectionKeyValuePairs(const std::string& file_name, const std::string& section)
+	std::vector<ConfigCustom::Members> ConfigCustom::get_section_key_value_pairs(const std::string& file_name, const std::string& section)
 	{
-		return impl_->GetSectionKeyValuePairs(string_utils::to_lower(file_name), string_utils::to_lower(section));
+		return impl_->get_section_key_value_pairs(string_utils::to_lower(file_name), string_utils::to_lower(section));
 	}
 
-	bool ConfigCustom::GetAllSectionsKeyValuePairs(const std::string& file_name, std::map<std::string, std::map<std::string, std::string>>& result)
+	bool ConfigCustom::get_all_sections_key_value_pairs(const std::string& file_name, std::map<std::string, std::map<std::string, std::string>>& result)
 	{
-		return impl_->GetAllSectionsKeyValuePairs(string_utils::to_lower(file_name), result);
+		return impl_->get_all_sections_key_value_pairs(string_utils::to_lower(file_name), result);
 	}
 }

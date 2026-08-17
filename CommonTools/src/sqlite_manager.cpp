@@ -11,12 +11,12 @@ namespace common_tools
 
 	SqliteManager::SqliteManager(const std::string& file_name)
 	{
-		Open(file_name);
+		open(file_name);
 	}
 
 	SqliteManager::~SqliteManager()
 	{
-		Close();
+		close();
 	}
 
 	SqliteManager::SqliteManager(SqliteManager&& other) noexcept
@@ -39,7 +39,7 @@ namespace common_tools
 			std::lock_guard<std::recursive_mutex> lock_self(mutex_);
 			std::lock_guard<std::recursive_mutex> lock_other(other.mutex_);
 
-			Close();
+			close();
 			db_ = other.db_;
 			last_error_ = std::move(other.last_error_);
 			file_name_ = std::move(other.file_name_);
@@ -52,7 +52,7 @@ namespace common_tools
 		return *this;
 	}
 
-	void SqliteManager::SetMaxStmtCacheCount(size_t count) noexcept
+	void SqliteManager::set_max_stmt_cache_count(size_t count) noexcept
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
 		last_error_.clear();
@@ -66,7 +66,7 @@ namespace common_tools
 		}
 	}
 
-	bool SqliteManager::CheckConnection() noexcept
+	bool SqliteManager::check_connection() noexcept
 	{
 		last_error_.clear();
 		if (!db_)
@@ -97,7 +97,7 @@ namespace common_tools
 		return true;
 	}
 
-	bool SqliteManager::TryReconnect() noexcept
+	bool SqliteManager::try_reconnect() noexcept
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
 		last_error_.clear();
@@ -109,7 +109,7 @@ namespace common_tools
 
 		if (db_)
 		{
-			Close();
+			close();
 		}
 
 		// 重新打开
@@ -124,23 +124,23 @@ namespace common_tools
 		}
 
 		// 重连后清空缓存
-		ClearStmtCache();
+		clear_stmt_cache();
 		return true;
 	}
 
-	bool SqliteManager::Open(const std::string& file_name)
+	bool SqliteManager::open(const std::string& file_name)
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
 		last_error_.clear();
 		file_name_ = file_name;
 		if (db_)
 		{
-			if (CheckConnection())
+			if (check_connection())
 			{
 				last_error_ = "Database already open";
 				return false;
 			}
-			Close();
+			close();
 		}
 
 		int rc = sqlite3_open_v2(file_name_.c_str(), &db_,
@@ -156,27 +156,27 @@ namespace common_tools
 		return true;
 	}
 
-	void SqliteManager::Close()
+	void SqliteManager::close()
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
 		last_error_.clear();
 		if (db_)
 		{
-			ClearStmtCache();
+			clear_stmt_cache();
 			sqlite3_close(db_);
 			db_ = nullptr;
 		}
 	}
 
-	bool SqliteManager::IsOpen() noexcept
+	bool SqliteManager::is_open() noexcept
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
 		last_error_.clear();
-		bool connected = CheckConnection();
+		bool connected = check_connection();
 		return db_ != nullptr && connected == true;
 	}
 
-	sqlite3_stmt* SqliteManager::GetStmtCache(const std::string& sql)
+	sqlite3_stmt* SqliteManager::get_stmt_cache(const std::string& sql)
 	{
 		last_error_.clear();
 		auto it = stmt_cache_.find(sql);
@@ -188,7 +188,7 @@ namespace common_tools
 		return nullptr;
 	}
 
-	void SqliteManager::AddStmtCache(const std::string& sql, sqlite3_stmt* stmt)
+	void SqliteManager::add_stmt_cache(const std::string& sql, sqlite3_stmt* stmt)
 	{
 		last_error_.clear();
 		if (!stmt)
@@ -208,7 +208,7 @@ namespace common_tools
 		stmt_cache_[sql] = stmt;
 	}
 
-	void SqliteManager::ClearStmtCache()
+	void SqliteManager::clear_stmt_cache()
 	{
 		stmt_cache_.clear();
 		for (auto& pair : stmt_cache_)
@@ -217,7 +217,7 @@ namespace common_tools
 		}
 	}
 
-	bool SqliteManager::BindParams(sqlite3_stmt* stmt, const ParamsList& params)
+	bool SqliteManager::bind_params(sqlite3_stmt* stmt, const ParamsList& params)
 	{
 		last_error_.clear();
 		int idx = 1;
@@ -272,7 +272,7 @@ namespace common_tools
 		return true;
 	}
 
-	bool SqliteManager::ExecutePreparedQuery(sqlite3_stmt* stmt, RowList& result)
+	bool SqliteManager::execute_prepared_query(sqlite3_stmt* stmt, RowList& result)
 	{
 		last_error_.clear();
 		result.clear();
@@ -326,7 +326,7 @@ namespace common_tools
 		return true;
 	}
 
-	bool SqliteManager::ExecuteNonQuery(const std::string& sql, const ParamsList& params)
+	bool SqliteManager::execute_non_query(const std::string& sql, const ParamsList& params)
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
 		last_error_.clear();
@@ -337,7 +337,7 @@ namespace common_tools
 		}
 
 		// 获取缓存语句
-		sqlite3_stmt* stmt = GetStmtCache(sql);
+		sqlite3_stmt* stmt = get_stmt_cache(sql);
 		bool is_cached = (stmt != nullptr);
 		bool ret = false;
 
@@ -352,7 +352,7 @@ namespace common_tools
 			}
 		}
 
-		if (BindParams(stmt, params))
+		if (bind_params(stmt, params))
 		{
 			int rc = sqlite3_step(stmt);
 			if (rc == SQLITE_DONE)
@@ -361,7 +361,7 @@ namespace common_tools
 				last_error_.clear();
 				if (!is_cached)
 				{
-					AddStmtCache(sql, stmt);
+					add_stmt_cache(sql, stmt);
 					stmt = nullptr; // 避免后续释放缓存语句
 				}
 			}
@@ -387,7 +387,7 @@ namespace common_tools
 		return ret;
 	}
 
-	bool SqliteManager::ExecuteBatchNonQuery(const std::string& sql, const BatchParamsList& params_list)
+	bool SqliteManager::execute_batch_non_query(const std::string& sql, const BatchParamsList& params_list)
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
 		last_error_.clear();
@@ -397,12 +397,12 @@ namespace common_tools
 			return false;
 		}
 
-		if (!BeginTransaction())
+		if (!begin_transaction())
 		{
 			return false;
 		}
 
-		sqlite3_stmt* stmt = GetStmtCache(sql);
+		sqlite3_stmt* stmt = get_stmt_cache(sql);
 		bool is_cached = (stmt != nullptr);
 		bool all_ok = true;
 
@@ -412,7 +412,7 @@ namespace common_tools
 			if (rc != SQLITE_OK)
 			{
 				last_error_ = sqlite3_errmsg(db_);
-				RollbackTransaction();
+				rollback_transaction();
 				return false;
 			}
 		}
@@ -420,7 +420,7 @@ namespace common_tools
 		for (const auto& params : params_list)
 		{
 			sqlite3_reset(stmt);
-			if (!BindParams(stmt, params))
+			if (!bind_params(stmt, params))
 			{
 				all_ok = false;
 				break;
@@ -437,16 +437,16 @@ namespace common_tools
 
 		if (all_ok)
 		{
-			CommitTransaction();
+			commit_transaction();
 			if (!is_cached)
 			{
-				AddStmtCache(sql, stmt);
+				add_stmt_cache(sql, stmt);
 				stmt = nullptr; // 避免后续释放缓存语句
 			}
 		}
 		else
 		{
-			RollbackTransaction();
+			rollback_transaction();
 			if (is_cached)
 			{
 				sqlite3_finalize(stmt);
@@ -463,7 +463,7 @@ namespace common_tools
 		return all_ok;
 	}
 
-	bool SqliteManager::ExecuteQuery(const std::string& sql, const ParamsList& params, RowList& result)
+	bool SqliteManager::execute_query(const std::string& sql, const ParamsList& params, RowList& result)
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
 		last_error_.clear();
@@ -473,7 +473,7 @@ namespace common_tools
 			return false;
 		}
 
-		sqlite3_stmt* stmt = GetStmtCache(sql);
+		sqlite3_stmt* stmt = get_stmt_cache(sql);
 		bool is_cached = (stmt != nullptr);
 		bool ret = false;
 
@@ -487,9 +487,9 @@ namespace common_tools
 			}
 		}
 
-		if (BindParams(stmt, params))
+		if (bind_params(stmt, params))
 		{
-			ret = ExecutePreparedQuery(stmt, result);
+			ret = execute_prepared_query(stmt, result);
 			if (!ret && is_cached)
 			{
 				sqlite3_finalize(stmt);
@@ -499,7 +499,7 @@ namespace common_tools
 
 			if (ret && !is_cached)
 			{
-				AddStmtCache(sql, stmt);
+				add_stmt_cache(sql, stmt);
 				stmt = nullptr; // 避免后续释放缓存语句
 			}
 		}
@@ -512,7 +512,7 @@ namespace common_tools
 		return ret;
 	}
 
-	bool SqliteManager::ExecuteQueryPage(const std::string& sql, const ParamsList& params, int current_page,
+	bool SqliteManager::execute_query_page(const std::string& sql, const ParamsList& params, int current_page,
 	                                     int page_size, RowList& data, int& total_count, int& total_pages)
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -530,7 +530,7 @@ namespace common_tools
 		// 查询总记录数
 		std::string count_sql = "SELECT COUNT(*) AS total FROM (" + sql + ") AS t_count;";
 		RowList count_result;
-		if (!ExecuteQuery(count_sql, params, count_result))
+		if (!execute_query(count_sql, params, count_result))
 		{
 			return false;
 		}
@@ -550,10 +550,10 @@ namespace common_tools
 		all_params.emplace_back(page_size);
 		all_params.emplace_back(offset);
 
-		return ExecuteQuery(page_sql, all_params, data);
+		return execute_query(page_sql, all_params, data);
 	}
 
-	bool SqliteManager::ReadBlobChunk(const std::string& table_name, const std::string& col_name, int64_t row_id,
+	bool SqliteManager::read_blob_chunk(const std::string& table_name, const std::string& col_name, int64_t row_id,
 	                                  size_t offset, size_t chunk_size, std::vector<char>& chunk_data)
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -602,7 +602,7 @@ namespace common_tools
 		return true;
 	}
 
-	bool SqliteManager::WriteBlobChunk(const std::string& table_name, const std::string& col_name, int64_t row_id,
+	bool SqliteManager::write_blob_chunk(const std::string& table_name, const std::string& col_name, int64_t row_id,
 	                                   size_t offset, const std::vector<char>& chunk_data)
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -648,28 +648,28 @@ namespace common_tools
 		return true;
 	}
 
-	bool SqliteManager::BeginTransaction()
+	bool SqliteManager::begin_transaction()
 	{
-		return ExecuteNonQuery("BEGIN TRANSACTION;");
+		return execute_non_query("BEGIN TRANSACTION;");
 	}
 
-	bool SqliteManager::CommitTransaction()
+	bool SqliteManager::commit_transaction()
 	{
-		return ExecuteNonQuery("COMMIT;");
+		return execute_non_query("COMMIT;");
 	}
 
-	bool SqliteManager::RollbackTransaction()
+	bool SqliteManager::rollback_transaction()
 	{
-		return ExecuteNonQuery("ROLLBACK;");
+		return execute_non_query("ROLLBACK;");
 	}
 
-	int64_t SqliteManager::GetLastInsertId() const noexcept
+	int64_t SqliteManager::get_last_insert_id() const noexcept
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
 		return db_ ? sqlite3_last_insert_rowid(db_) : 0;
 	}
 
-	std::string SqliteManager::GetLastErrorMsg() const noexcept
+	std::string SqliteManager::get_last_error_msg() const noexcept
 	{
 		std::lock_guard<std::recursive_mutex> lock(mutex_);
 		return last_error_;

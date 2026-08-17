@@ -1,7 +1,7 @@
 ﻿#pragma once
 // ============================================================================
 // 键值对配置类(KeyValueMap)
-// 基于 Json::Value 的键值对容器，线程安全，支持类型化 Set/Get 与序列化。
+// 基于 Json::Value 的键值对容器，线程安全，支持类型化 set/get 与序列化。
 // ============================================================================
 #include "common_export.h"
 #include <string>
@@ -31,35 +31,35 @@ namespace common_tools
 		 * @param [in] key - 键名（区分大小写）
 		 * @param [in] value - 值
 		 **/
-		void Set(const std::string& key, const bool& value);
+		void set(const std::string& key, const bool& value);
 
 		/**
 		 * @brief 写入整数值
 		 * @param [in] key - 键名（区分大小写）
 		 * @param [in] value - 值
 		 **/
-		void Set(const std::string& key, const int& value);
+		void set(const std::string& key, const int& value);
 
 		/**
 		 * @brief 写入单精度浮点值
 		 * @param [in] key - 键名（区分大小写）
 		 * @param [in] value - 值
 		 **/
-		void Set(const std::string& key, const float& value);
+		void set(const std::string& key, const float& value);
 
 		/**
 		 * @brief 写入双精度浮点值
 		 * @param [in] key - 键名（区分大小写）
 		 * @param [in] value - 值
 		 **/
-		void Set(const std::string& key, const double& value);
+		void set(const std::string& key, const double& value);
 
 		/**
 		 * @brief 写入字符串值
 		 * @param [in] key - 键名（区分大小写）
 		 * @param [in] value - 值
 		 **/
-		void Set(const std::string& key, const std::string& value);
+		void set(const std::string& key, const std::string& value);
 
 		/**
 		 * @brief 读取布尔值
@@ -67,7 +67,7 @@ namespace common_tools
 		 * @param [in] default_value - 键不存在时的默认值
 		 * @return 值
 		 **/
-		bool Get(const std::string& key, bool default_value = false);
+		bool get(const std::string& key, bool default_value = false);
 
 		/**
 		 * @brief 读取整数值
@@ -75,7 +75,7 @@ namespace common_tools
 		 * @param [in] default_value - 键不存在时的默认值
 		 * @return 值
 		 **/
-		int Get(const std::string& key, int default_value = 0);
+		int get(const std::string& key, int default_value = 0);
 
 		/**
 		 * @brief 读取单精度浮点值
@@ -83,7 +83,7 @@ namespace common_tools
 		 * @param [in] default_value - 键不存在时的默认值
 		 * @return 值
 		 **/
-		float Get(const std::string& key, float default_value = 0.0f);
+		float get(const std::string& key, float default_value = 0.0f);
 
 		/**
 		 * @brief 读取双精度浮点值
@@ -91,7 +91,7 @@ namespace common_tools
 		 * @param [in] default_value - 键不存在时的默认值
 		 * @return 值
 		 **/
-		double Get(const std::string& key, double default_value = 0.0);
+		double get(const std::string& key, double default_value = 0.0);
 
 		/**
 		 * @brief 读取字符串值
@@ -99,20 +99,20 @@ namespace common_tools
 		 * @param [in] default_value - 键不存在时的默认值
 		 * @return 值
 		 **/
-		std::string Get(const std::string& key, const std::string& default_value = "");
+		std::string get(const std::string& key, const std::string& default_value = "");
 
 		/**
 		 * @brief 序列化为 JSON 字符串
 		 * @param [in] style - true 输出带缩进格式，false 输出紧凑格式
 		 * @return JSON 文本
 		 **/
-		std::string ToString(bool style = false) const;
+		std::string to_string(bool style = false) const;
 
 		/**
 		 * @brief 从 JSON 字符串反序列化（覆盖当前内容）
 		 * @param [in] str - JSON 文本
 		 **/
-		void FromString(const std::string& str);
+		void from_string(const std::string& str);
 	private:
 		struct Impl;
 		std::unique_ptr<Impl> impl_;

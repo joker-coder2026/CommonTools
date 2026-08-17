@@ -1,4 +1,4 @@
-# CommonTools 更新记录（相对最初版本）
+﻿# CommonTools 更新记录（相对最初版本）
 
 本文档仅记录相对最初版本（单文件巨石结构）的更新内容。
 
@@ -14,7 +14,7 @@
 
 ## 2. 命名规范化（无兼容层，使用方需同步修改）
 
-- **自由函数统一 snake_case**：`string_utils::Split→split`、`file_system::Exists→exists`、`bit32_tools::Set→set` 等 35+ 个
+- **全部函数（含类方法）统一 snake_case**：自由函数 `string_utils::Split→split`、`file_system::Exists→exists` 等 35+ 个；类方法 `IniManager::WriteValue→write_value`、`SqliteManager::ExecuteQuery→execute_query`、`ConfigCustom::GetInstance→get_instance`、`Logger::Info→info`、`KeyValueMap::Set→set` 等 120+ 个（含 LOG/CFG 宏同步更新）
 - **拼写修正**：`Repalce→Replace`、`show_precent→show_percent`、`precent_value→percent_value`、`CreateDirectorys→create_directories` 等
 - **语义化**：`G2U→GBKToUTF8`、`U2G→UTF8ToGBK`、`UMapList→RowList`
 - **风格统一**：`KeyValueMap::set/get→Set/Get`（类方法统一 CamelCase）、枚举简化 `using X = enum class X` → `enum class X`

@@ -43,67 +43,67 @@ namespace common_tools
 	{
 	}
 
-	void KeyValueMap::Set(const std::string& key, const bool& value)
+	void KeyValueMap::set(const std::string& key, const bool& value)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		impl_->root[key] = value;
 	}
 
-	void KeyValueMap::Set(const std::string& key, const int& value)
+	void KeyValueMap::set(const std::string& key, const int& value)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		impl_->root[key] = value;
 	}
 
-	void KeyValueMap::Set(const std::string& key, const float& value)
+	void KeyValueMap::set(const std::string& key, const float& value)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		impl_->root[key] = value;
 	}
 
-	void KeyValueMap::Set(const std::string& key, const double& value)
+	void KeyValueMap::set(const std::string& key, const double& value)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		impl_->root[key] = value;
 	}
 
-	void KeyValueMap::Set(const std::string& key, const std::string& value)
+	void KeyValueMap::set(const std::string& key, const std::string& value)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		impl_->root[key] = value;
 	}
 
-	bool KeyValueMap::Get(const std::string& key, bool default_value)
+	bool KeyValueMap::get(const std::string& key, bool default_value)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		return impl_->root.isMember(key) ? impl_->root[key].asBool() : default_value;
 	}
 
-	int KeyValueMap::Get(const std::string& key, int default_value)
+	int KeyValueMap::get(const std::string& key, int default_value)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		return impl_->root.isMember(key) ? impl_->root[key].asInt() : default_value;
 	}
 
-	float KeyValueMap::Get(const std::string& key, float default_value)
+	float KeyValueMap::get(const std::string& key, float default_value)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		return impl_->root.isMember(key) ? impl_->root[key].asFloat() : default_value;
 	}
 
-	double KeyValueMap::Get(const std::string& key, double default_value)
+	double KeyValueMap::get(const std::string& key, double default_value)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		return impl_->root.isMember(key) ? impl_->root[key].asDouble() : default_value;
 	}
 
-	std::string KeyValueMap::Get(const std::string& key, const std::string& default_value)
+	std::string KeyValueMap::get(const std::string& key, const std::string& default_value)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		return impl_->root.isMember(key) ? impl_->root[key].asString() : default_value;
 	}
 
-	std::string KeyValueMap::ToString(bool style) const
+	std::string KeyValueMap::to_string(bool style) const
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		Json::StreamWriterBuilder wb;
@@ -111,7 +111,7 @@ namespace common_tools
 		return Json::writeString(wb, impl_->root);
 	}
 
-	void KeyValueMap::FromString(const std::string& str)
+	void KeyValueMap::from_string(const std::string& str)
 	{
 		std::lock_guard<std::mutex> lock(mutex_);
 		Json::CharReaderBuilder rb;
