@@ -9,7 +9,7 @@ namespace common_tools
 {
 	namespace
 	{
-		bool ContainsDriveLetter(const std::string& path)
+		bool contains_drive_letter(const std::string& path)
 		{
 			if (path.length() >= 2 && std::isalpha(path[0]) && path[1] == ':')
 			{
@@ -18,7 +18,7 @@ namespace common_tools
 			return false;
 		}
 
-		bool ContainsPathSeparator(const std::string& path)
+		bool contains_path_separator(const std::string& path)
 		{
 			if (path.find('\\') != std::string::npos)
 			{
@@ -31,7 +31,7 @@ namespace common_tools
 			return false;
 		}
 
-		std::string GetExecutablePath()
+		std::string get_executable_path()
 		{
 			char buffer[MAX_PATH];
 			::GetModuleFileName(nullptr, buffer, MAX_PATH);
@@ -51,13 +51,13 @@ namespace common_tools
 		set_last_error("");
 		file_path_ = "";
 
-		if (ContainsDriveLetter(file_path) && ContainsPathSeparator(file_path))
+		if (contains_drive_letter(file_path) && contains_path_separator(file_path))
 		{
 			file_path_ = file_path;
 		}
 		else
 		{
-			std::string current_path = GetExecutablePath();
+			std::string current_path = get_executable_path();
 			file_path_ = current_path + "\\" + file_path;
 		}
 	}

@@ -64,7 +64,7 @@ namespace common_tools
 			return ConfigDataType::Null;
 		}
 
-		bool EnsureNodeExists(const std::string& file_name, const std::string& section, const std::string& key)
+		bool ensure_node_exists(const std::string& file_name, const std::string& section, const std::string& key)
 		{
 			if (string_utils::trim(file_name).empty() || string_utils::trim(section).empty() || string_utils::trim(key).
 				empty())
@@ -664,7 +664,7 @@ namespace common_tools
 		  section_(string_utils::to_lower(section)),
 		  key_(string_utils::to_lower(key))
 	{
-		impl_->EnsureNodeExists(file_name_, section_, key_);
+		impl_->ensure_node_exists(file_name_, section_, key_);
 	}
 
 	ConfigKey::ConfigKey(ConfigImpl* impl, const std::string& file_name, const std::string& section)
@@ -678,7 +678,7 @@ namespace common_tools
 	ConfigKey ConfigKey::operator[](const std::string& key)
 	{
 		key_ = string_utils::to_lower(key);
-		impl_->EnsureNodeExists(file_name_, section_, key_); //不能移除，当key非空时自动创建节点
+		impl_->ensure_node_exists(file_name_, section_, key_); //不能移除，当key非空时自动创建节点
 		return *this;
 	}
 
@@ -691,7 +691,7 @@ namespace common_tools
 		//	&& impl_->json_root_[file_name_][section_][key_].isMember("value")
 		//	&& impl_->json_root_[file_name_][section_][key_]["value"].type() != Json::nullValue
 		//	)
-		if (impl_->EnsureNodeExists(file_name_, section_, key_))
+		if (impl_->ensure_node_exists(file_name_, section_, key_))
 		{
 			impl_->json_root_[file_name_][section_][key_]["description"] = string_utils::GBKToUTF8(value);
 		}
@@ -704,7 +704,7 @@ namespace common_tools
 		{
 			std::lock_guard<std::mutex> lock(impl_->data_mtx_);
 
-			if (impl_->EnsureNodeExists(file_name_, section_, key_))
+			if (impl_->ensure_node_exists(file_name_, section_, key_))
 			{
 				std::string temp = impl_->json_root_[file_name_][section_][key_].get("description", "").asString();
 				if (impl_->json_root_[file_name_][section_][key_]["value"].type() != Json::nullValue && !temp.empty())
@@ -721,7 +721,7 @@ namespace common_tools
 		std::lock_guard<std::mutex> lock(impl_->data_mtx_);
 
 		auto type = ConfigDataType::Null;
-		if (impl_->EnsureNodeExists(file_name_, section_, key_))
+		if (impl_->ensure_node_exists(file_name_, section_, key_))
 		{
 			if (impl_->json_root_.isMember(file_name_) && impl_->json_root_[file_name_].isMember(section_) && impl_->
 				json_root_[file_name_][section_].isMember(key_) && impl_->json_root_[file_name_][section_][key_].
@@ -757,7 +757,7 @@ namespace common_tools
 		{
 			std::lock_guard<std::mutex> lock(impl_->data_mtx_);
 
-			if (impl_->EnsureNodeExists(file_name_, section_, key_))
+			if (impl_->ensure_node_exists(file_name_, section_, key_))
 			{
 				int temp = impl_->json_root_[file_name_][section_][key_].get("value", Json::Value::maxInt).asInt();
 				if (impl_->json_root_[file_name_][section_][key_]["value"].type() != Json::nullValue && temp !=
@@ -779,7 +779,7 @@ namespace common_tools
 		{
 			std::lock_guard<std::mutex> lock(impl_->data_mtx_);
 
-			if (impl_->EnsureNodeExists(file_name_, section_, key_))
+			if (impl_->ensure_node_exists(file_name_, section_, key_))
 			{
 				double temp = impl_->json_root_[file_name_][section_][key_].get("value", Json::Value::maxUInt64AsDouble)
 					.asDouble();
@@ -802,7 +802,7 @@ namespace common_tools
 		{
 			std::lock_guard<std::mutex> lock(impl_->data_mtx_);
 
-			if (impl_->EnsureNodeExists(file_name_, section_, key_))
+			if (impl_->ensure_node_exists(file_name_, section_, key_))
 			{
 				std::string temp = impl_->json_root_[file_name_][section_][key_].get("value", "").asString();
 				if (impl_->json_root_[file_name_][section_][key_]["value"].type() != Json::nullValue && !temp.empty())
@@ -820,7 +820,7 @@ namespace common_tools
 	COMMONTOOLS_API ConfigKey& ConfigKey::set<int>(const int& value, const std::string& description)
 	{
 		std::lock_guard<std::mutex> lock(impl_->data_mtx_);
-		if (impl_->EnsureNodeExists(file_name_, section_, key_))
+		if (impl_->ensure_node_exists(file_name_, section_, key_))
 		{
 			impl_->json_root_[file_name_][section_][key_]["value"] = value;
 		}
@@ -833,7 +833,7 @@ namespace common_tools
 	COMMONTOOLS_API ConfigKey& ConfigKey::set<double>(const double& value, const std::string& description)
 	{
 		std::lock_guard<std::mutex> lock(impl_->data_mtx_);
-		if (impl_->EnsureNodeExists(file_name_, section_, key_))
+		if (impl_->ensure_node_exists(file_name_, section_, key_))
 		{
 			impl_->json_root_[file_name_][section_][key_]["value"] = value;
 		}
@@ -846,7 +846,7 @@ namespace common_tools
 	COMMONTOOLS_API ConfigKey& ConfigKey::set<std::string>(const std::string& value, const std::string& description)
 	{
 		std::lock_guard<std::mutex> lock(impl_->data_mtx_);
-		if (impl_->EnsureNodeExists(file_name_, section_, key_))
+		if (impl_->ensure_node_exists(file_name_, section_, key_))
 		{
 			impl_->json_root_[file_name_][section_][key_]["value"] = string_utils::GBKToUTF8(value);
 		}

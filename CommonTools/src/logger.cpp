@@ -55,7 +55,7 @@ namespace common_tools
 			return create_time != -1;
 		}
 
-		void DeleteExpiredLogFiles(const std::string& dir_path, int days)
+		void delete_expired_log_files(const std::string& dir_path, int days)
 		{
 			std::string search_path = dir_path + "\\*";
 			WIN32_FIND_DATAA find_data = {0};
@@ -78,7 +78,7 @@ namespace common_tools
 
 				if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 				{
-					DeleteExpiredLogFiles(full_path, days);
+					delete_expired_log_files(full_path, days);
 
 					if (PathIsDirectoryEmptyA(full_path.c_str()))
 					{
@@ -1281,7 +1281,7 @@ namespace common_tools
 					continue;
 				}
 
-				DeleteExpiredLogFiles(path, days);
+				delete_expired_log_files(path, days);
 			}
 
 			constexpr int cleanup_interval = 3600; // 等待指定间隔(秒)，避免频繁刷新IO
