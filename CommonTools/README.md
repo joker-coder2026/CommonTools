@@ -28,6 +28,7 @@
 ## 4. 编译标准
 
 - 显式 `/std:c++14` + `ConformanceMode=true`（`/permissive-` 严格模式），代码纯 C++14 兼容（无 C++17+ 特性）
+- 警告级别提升至 **Level4**，Debug/Release 全量编译零警告（C4251 dll 接口误报已在公共头统一禁用）
 - 构建环境：Visual Studio 2025+（v145）、Windows 10 SDK
 
 ## 5. 已删除项

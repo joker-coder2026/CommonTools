@@ -53,7 +53,7 @@ namespace common_tools
 			if (std::is_same<T, bool>::value)
 			{
 				std::string s = str;
-				std::transform(s.begin(), s.end(), s.begin(), tolower);
+				std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 				value = (s == "true" || s == "1" || s == "yes");
 			}
 			else

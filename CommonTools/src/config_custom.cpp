@@ -283,9 +283,9 @@ namespace common_tools
 				}
 
 				std::string suffix = member.substr(pos);
-				for (size_t i = 0; i < suffix.size(); i++)
+				for (size_t j = 0; j < suffix.size(); j++)
 				{
-					suffix[i] = tolower(suffix[i]);
+					suffix[j] = static_cast<char>(tolower(static_cast<unsigned char>(suffix[j])));
 				}
 				if (suffix.compare(".json") != 0)
 				{

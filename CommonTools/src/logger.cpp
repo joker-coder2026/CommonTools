@@ -1036,7 +1036,7 @@ namespace common_tools
 				if (!db_->is_open())
 					return false;
 
-				bool rc = db_->execute_non_query(CREATE_SQL);
+				db_->execute_non_query(CREATE_SQL);
 				db_last_date_ = date;
 			}
 
@@ -1062,7 +1062,7 @@ namespace common_tools
 				}
 				params_list.push_back(std::move(params));
 			}
-			bool rc = db_->execute_batch_non_query(INSERT_SQL, params_list);
+			db_->execute_batch_non_query(INSERT_SQL, params_list);
 
 			return true;
 		};
@@ -1083,7 +1083,7 @@ namespace common_tools
 				queues_.insert(&queue_msg_);
 			}
 
-			auto ok = LamdbaFunc(batch);
+			LamdbaFunc(batch);
 
 			std::unique_lock<std::mutex> lock(queue_mutex_);
 			cv_.wait_for(lock, std::chrono::milliseconds(1000), [this]()
@@ -1116,7 +1116,7 @@ namespace common_tools
 		if (remain.empty() || !db_ || !db_->is_open())
 			return;
 
-		auto ok = LamdbaFunc(remain);
+		LamdbaFunc(remain);
 	}
 
 	LoggerManager& LoggerManager::get_instance()

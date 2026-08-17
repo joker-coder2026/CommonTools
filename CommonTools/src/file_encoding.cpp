@@ -77,6 +77,7 @@ namespace file_encoding
 
 	void set(const Encoding& encoding)
 	{
-		// 内容转换
+		// 内容转换（预留接口，暂未实现）
+		(void)encoding; // 消除未使用参数警告
 	}
 }

@@ -4,6 +4,11 @@
 // 本文件不包含任何 std 头文件，各模块头文件自包含所需 include
 // ============================================================================
 
+// C4251：导出类成员为 std 类型（string/map/vector 等）时触发。
+// MSVC 的 STL 已对 std 类型做了正确的 dll 导出处理，跨 DLL 使用无实际风险，
+// 此警告对标准库类型属于误报，故统一禁用（仅影响本库及包含本头的使用方）。
+#pragma warning(disable : 4251)
+
 #ifdef _WINDLL
 #ifdef COMMONTOOLS_DLL
 #define COMMONTOOLS_API __declspec(dllexport)
